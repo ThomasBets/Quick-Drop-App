@@ -2,8 +2,11 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
+use App\Models\Location;
 use Illuminate\Database\Seeder;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Order;
 
 class OrderSeeder extends Seeder
 {
@@ -12,6 +15,21 @@ class OrderSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        $senders = User::where('role', 'sender')->get();
+        $drivers = User::where('role', 'driver')->get();
+        $locations = Location::all();
+
+        for ($i = 0; $i < 20; $i++) {
+            Order::create([
+                'sender_id' => $senders->random()->id,
+                'driver_id' => $drivers->random()->id,
+                'pickup_location_id' => $locations->random()->id,
+                'dropoff_location_id' => $locations->random()->id,
+                'package_description' => 'Package #' . ($i + 1),
+                'status' => 'pending',
+                'estimated_time' => now()->addMinutes(rand(10, 180)),
+                'delivered_at' => null,
+            ]);
+        }
     }
 }

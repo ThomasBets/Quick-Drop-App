@@ -9,4 +9,22 @@ class Notification extends Model
 {
     /** @use HasFactory<\Database\Factories\NotificationFactory> */
     use HasFactory;
+
+    protected $fillable = [
+        'user_id',
+        'title',
+        'body',
+        'type',
+        'data',
+        'read_at'
+    ];
+
+    protected $casts = [
+        'data' => 'array',
+        'read_at' => 'datetime',
+    ];
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
