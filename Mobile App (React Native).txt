@@ -1,0 +1,28 @@
+mobile-app/
+├── src/
+│   ├── screens/
+│   │   ├── LoginScreen.js
+│   │   ├── OrderListScreen.js
+│   │   ├── OrderDetailsScreen.js
+│   │   └── ChatScreen.js
+│   ├── components/
+│   │   ├── OrderCard.js
+│   │   ├── LiveMap.js
+│   │   └── MessageBubble.js
+│   ├── services/
+│   │   ├── api.js             ← Axios με token
+│   │   ├── auth.js
+│   │   ├── location.js
+│   │   └── firebase.js        ← FCM integration
+│   ├── context/
+│   │   └── AuthContext.js
+│   ├── navigation/
+│   │   └── AppNavigator.js
+│   ├── storage/
+│   │   └── localDb.js         ← SQLite ή AsyncStorage
+│   └── utils/
+│       └── sync.js            ← Sync offline data
+├── App.js
+├── .env
+├── package.json
+└── firebase.json

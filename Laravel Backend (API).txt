@@ -1,0 +1,33 @@
+backend-api/
+├── app/
+│   ├── Models/
+│   │   ├── User.php
+│   │   ├── Order.php
+│   │   ├── Message.php
+|   |   |── Location.php
+│   │   └── Notification.php
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── AuthController.php
+│   │   │   ├── OrderController.php
+│   │   │   ├── LocationController.php
+│   │   │   └── MessageController.php
+│   │   └── Middleware/
+│   ├── Events/
+│   ├── Listeners/
+│   ├── Notifications/
+│   └── Services/
+│       ├── LocationService.php
+│       └── FCMService.php
+├── database/
+│   ├── migrations/
+│   ├── seeders/
+│   └── factories/
+├── routes/
+│   ├── api.php        ← για το mobile app (token-based)
+│   └── web.php        ← για το web app (session-based)
+├── config/
+│   ├── sanctum.php
+│   ├── broadcasting.php
+│   └── database.php
+└── .env
