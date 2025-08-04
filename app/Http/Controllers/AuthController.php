@@ -40,8 +40,6 @@ class AuthController extends Controller
             'email'    => $request->email,
             'password' => Hash::make($request->password),
             'role'     => $request->role,
-
-            // prepei na prosthesw kai ta upoloipa pedia tou user
         ]);
 
         Auth::login($user);
@@ -94,8 +92,6 @@ class AuthController extends Controller
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role' => $validated['role']
-
-            // prepei na prosthesw kai ta upoloipa pedia tou user
         ]);
 
         $token = $user->createToken("api-token")->plainTextToken;
