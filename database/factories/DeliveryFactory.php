@@ -7,9 +7,9 @@ use App\Models\Location;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Order>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Delivery>
  */
-class OrderFactory extends Factory
+class DeliveryFactory extends Factory
 {
     /**
      * Define the model's default state.

@@ -3,12 +3,12 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Delivery;
 use App\Models\Location;
 use Illuminate\Database\Seeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use App\Models\Order;
 
-class OrderSeeder extends Seeder
+class DeliverySeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -16,13 +16,12 @@ class OrderSeeder extends Seeder
     public function run(): void
     {
         $senders = User::where('role', 'sender')->get();
-        $drivers = User::where('role', 'driver')->get();
         $locations = Location::all();
 
         for ($i = 0; $i < 20; $i++) {
-            Order::create([
+            Delivery::create([
                 'sender_id' => $senders->random()->id,
-                'driver_id' => $drivers->random()->id,
+                'driver_id' => null,
                 'pickup_location_id' => $locations->random()->id,
                 'dropoff_location_id' => $locations->random()->id,
                 'package_description' => 'Package #' . ($i + 1),

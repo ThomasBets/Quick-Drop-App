@@ -1,4 +1,4 @@
-import MainLayout from "../../Layouts/Layout";
+import MainLayout from "../../Layouts/MainLayout";
 import { Link, router } from "@inertiajs/react";
 import { useState } from "react";
 
@@ -41,9 +41,9 @@ export default function Register() {
                 </div>
             }
             main={
-                <div className="w-full max-w-lg md:max-w-2xl lg:max-w-2xl">
+                <div className="w-full max-w-xl">
                     <form onSubmit={handleRegister} className="form">
-                        <h2 className="text-2xl text font-bold text-center mb-6">
+                        <h2 className="text-2xl text font-bold text-center mb-4">
                             Register
                         </h2>
 
@@ -63,7 +63,7 @@ export default function Register() {
 
                         {/* Name Field */}
                         <div className="mb-6">
-                            <label className="block text mb-2">Name</label>
+                            <label className="block text mb-2">Name*</label>
                             <input
                                 type="text"
                                 className="form_field"
@@ -77,13 +77,13 @@ export default function Register() {
                                 }
                             />
                             {errors.name && (
-                                <p className="error">{errors.name[0]}</p>
+                                <p className="error">{errors.name}</p>
                             )}
                         </div>
 
                         {/* Role Selector */}
                         <div className="mb-6">
-                            <label className="block text mb-2">Role</label>
+                            <label className="block text mb-2">Role*</label>
                             <select
                                 className="form_field"
                                 value={formData.role}
@@ -105,13 +105,13 @@ export default function Register() {
                                 </option>
                             </select>
                             {errors.role && (
-                                <p className="error">{errors.role[0]}</p>
+                                <p className="error">{errors.role}</p>
                             )}
                         </div>
 
                         {/* Email Field */}
-                        <div className="mb-4">
-                            <label className="block text mb-2">Email</label>
+                        <div className="mb-6">
+                            <label className="block text mb-2">Email*</label>
                             <input
                                 type="email"
                                 className="form_field"
@@ -125,13 +125,13 @@ export default function Register() {
                                 }
                             />
                             {errors.email && (
-                                <p className="error">{errors.email[0]}</p>
+                                <p className="error">{errors.email}</p>
                             )}
                         </div>
 
                         {/* Password Field */}
                         <div className="mb-6">
-                            <label className="block text mb-2">Password</label>
+                            <label className="block text mb-2">Password*</label>
                             <input
                                 type="password"
                                 className="form_field"
@@ -145,14 +145,14 @@ export default function Register() {
                                 }
                             />
                             {errors.password && (
-                                <p className="error">{errors.password[0]}</p>
+                                <p className="error">{errors.password}</p>
                             )}
                         </div>
 
                         {/* Confirm Password Field */}
                         <div className="mb-6">
                             <label className="block text mb-2">
-                                Confirm Password
+                                Confirm Password*
                             </label>
                             <input
                                 type="password"
@@ -171,7 +171,7 @@ export default function Register() {
                         {/* Phone Field */}
                         <div className="mb-6">
                             <label className="block text mb-2">
-                                Phone Number (*)
+                                Phone Number
                             </label>
                             <input
                                 type="text"
@@ -190,7 +190,7 @@ export default function Register() {
                         {/* Vechicle Type Field */}
                         <div className="mb-6">
                             <label className="block text mb-2">
-                                Vechicle Type (*)
+                                Vechicle Type
                             </label>
                             <input
                                 type="text"
@@ -209,7 +209,7 @@ export default function Register() {
                         {/* License Number Field */}
                         <div className="mb-6">
                             <label className="block text mb-2">
-                                License Number (*)
+                                License Number
                             </label>
                             <input
                                 type="text"

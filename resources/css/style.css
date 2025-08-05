@@ -20,3 +20,7 @@
 .link {
     @apply text-2xl font-semibold;
 }
+
+.error{
+    @apply text-sm text-red-500 font-semibold
+}

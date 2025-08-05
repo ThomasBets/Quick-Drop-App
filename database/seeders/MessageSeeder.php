@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Order;
 use App\Models\Message;
+use App\Models\Delivery;
 use Illuminate\Database\Seeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
@@ -14,15 +14,35 @@ class MessageSeeder extends Seeder
      */
     public function run(): void
     {
-        $orders = Order::all();
+        $deliveries = Delivery::all();
 
-        foreach ($orders as $order) {
-
+        foreach ($deliveries as $delivery) {
             for ($i = 0; $i < 5; $i++) {
+                if ($delivery->driver_id) {
+
+                    if (rand(0, 1)) {
+                        $sender_id = $delivery->sender_id;
+                        $receiver_id = $delivery->driver_id;
+                    } else {
+                        $sender_id = $delivery->driver_id;
+                        $receiver_id = $delivery->sender_id;
+                    }
+                } else {
+
+                    do {
+                        $sender_id = rand(1, 20);
+                    } while ($sender_id == $delivery->sender_id);
+
+
+                    do {
+                        $receiver_id = rand(1, 20);
+                    } while ($receiver_id == $sender_id && $receiver_id == $delivery->$sender_id);
+                }
+
                 Message::create([
-                    'order_id' => $order->id,
-                    'sender_id' => rand(0, 1) ? $order->sender_id : $order->driver_id,
-                    'receiver_id' => rand(0, 1) ? $order->sender_id : $order->driver_id,
+                    'delivery_id' => $delivery->id,
+                    'sender_id' => $sender_id,
+                    'receiver_id' => $receiver_id,
                     'message' => 'Sample message ' . ($i + 1),
                 ]);
             }

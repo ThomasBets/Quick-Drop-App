@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UserSeeder::class,
             LocationSeeder::class,
-            OrderSeeder::class,
+            DeliverySeeder::class,
             MessageSeeder::class,
             DriverLocationSeeder::class,
             NotificationSeeder::class,

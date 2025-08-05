@@ -1,5 +1,5 @@
 import { useState } from "react";
-import MainLayout from "../../Layouts/Layout";
+import MainLayout from "../../Layouts/MainLayout";
 import { router, Link } from "@inertiajs/react";
 
 export default function Login() {
@@ -42,10 +42,10 @@ export default function Login() {
                 </div>
             }
             main={
-                <div className="w-full max-w-lg md:max-w-2xl lg:max-w-2xl">
+                <div className="w-full max-w-xl">
                     <form onSubmit={handleLogin} className="form">
                         {/* Title */}
-                        <h2 className="text-2xl text font-bold text-center">
+                        <h2 className="text-2xl text font-bold text-center mb-4">
                             Login
                         </h2>
 
@@ -80,7 +80,7 @@ export default function Login() {
                             />
                             {/* Display email field errors */}
                             {errors.email && (
-                                <p className="error">{errors.email[0]}</p>
+                                <p className="error">{errors.email}</p>
                             )}
                         </div>
 
@@ -106,7 +106,7 @@ export default function Login() {
                         </div>
 
                         {/* Submit button */}
-                        <button type="submit" className="mt-6 button">
+                        <button type="submit" className="mt-4 button">
                             Login
                         </button>
 

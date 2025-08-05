@@ -54,12 +54,12 @@ class User extends Authenticatable
 
     public function sentOrders()
     {
-        return $this->hasMany(Order::class, 'sender_id');
+        return $this->hasMany(Delivery::class, 'sender_id');
     }
 
     public function deliveries()
     {
-        return $this->hasMany(Order::class, 'driver_id');
+        return $this->hasMany(Delivery::class, 'driver_id');
     }
 
     public function sentMessages()

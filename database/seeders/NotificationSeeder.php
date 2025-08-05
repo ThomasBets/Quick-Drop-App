@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Delivery;
 use App\Models\User;
-use App\Models\Order;
 use App\Models\Notification;
 use Illuminate\Database\Seeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -16,7 +16,7 @@ class NotificationSeeder extends Seeder
     public function run(): void
     {
         $users = User::all();
-        $orders = Order::all();
+        $deliveries = Delivery::all();
 
         foreach ($users as $user) {
             Notification::create([
@@ -29,13 +29,13 @@ class NotificationSeeder extends Seeder
             ]);
         }
 
-        foreach ($orders->random(rand(1, 5)) as $order) {
+        foreach ($deliveries->random(rand(1, 5)) as $delivery) {
             Notification::create([
                 'user_id' => $user->id,
-                'title' => 'Order Update',
-                'body' => 'Order #' . $order->id . ' status changed.',
-                'type' => 'order',
-                'data' => ['order_id' => $order->id],
+                'title' => 'Delivery Update',
+                'body' => 'Delivery #' . $delivery->id . ' status changed.',
+                'type' => 'delivery',
+                'data' => ['delivery_id' => $delivery->id],
                 'read_at' => null,
             ]);
         }

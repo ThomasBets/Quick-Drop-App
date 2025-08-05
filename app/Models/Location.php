@@ -20,11 +20,11 @@ class Location extends Model
 
     public function pickupOrders()
     {
-        return $this->hasMany(Order::class, 'pickup_location_id');
+        return $this->hasMany(Delivery::class, 'pickup_location_id');
     }
 
     public function dropoffOrders()
     {
-        return $this->hasMany(Order::class, 'dropoff_location_id');
+        return $this->hasMany(Delivery::class, 'dropoff_location_id');
     }
 }

@@ -1,4 +1,4 @@
-import MainLayout from "../Layouts/Layout";
+import MainLayout from "../Layouts/MainLayout";
 import { Link } from "@inertiajs/react";
 
 export default function Home() {

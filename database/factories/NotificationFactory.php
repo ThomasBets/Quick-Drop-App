@@ -19,10 +19,10 @@ class NotificationFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'title' => 'Order Update',
+            'title' => 'Delivery Update',
             'body' => 'Your package is on the way!',
-            'type' => 'order',
-            'data' => ['order_id' => fake()->numberBetween(1,100)],
+            'type' => 'delivery',
+            'data' => ['delivery_id' => fake()->numberBetween(1,100)],
             'read_at' => null,
         ];
     }

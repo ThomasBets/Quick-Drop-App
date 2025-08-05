@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
 
 class AuthController extends Controller
 {
@@ -18,7 +19,7 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->intended('/dashboard');
+            return Inertia::location('/dashboard');
         }
 
         return back()->withErrors([
@@ -33,6 +34,11 @@ class AuthController extends Controller
             'email'    => 'required|email|unique:users',
             'password' => 'required|string|min:8|max:15|confirmed',
             'role'     => 'required|in:sender,driver',
+
+            // Optional fields
+            'phone'           => 'nullable|string|min:10|max:14',
+            'vehicle_type'    => 'nullable|string|min:3|max:50',
+            'license_number'  => 'nullable|string|min:7|max:10',
         ]);
 
         $user = User::create([
@@ -40,10 +46,15 @@ class AuthController extends Controller
             'email'    => $request->email,
             'password' => Hash::make($request->password),
             'role'     => $request->role,
+
+            // Optional fields
+            'phone'           => $request->phone,
+            'vehicle_type'    => $request->vehicle_type,
+            'license_number'  => $request->license_number,
         ]);
 
         Auth::login($user);
-        return redirect()->intended('/dashboard');
+        return Inertia::location('/dashboard');
     }
 
     public function logout(Request $request)
@@ -51,7 +62,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/');
+        return Inertia::location('/');
     }
 
     // Api Token authentication (Mobile app)
@@ -84,14 +95,25 @@ class AuthController extends Controller
             'name' => 'required|string|max:100',
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:8|max:15|confirmed',
-            'role' => 'required|in:sender,driver'
+            'role' => 'required|in:sender,driver',
+
+
+            // Optional fields
+            'phone'           => 'nullable|string|min:10|max:14',
+            'vehicle_type'    => 'nullable|string|min:3|max:50',
+            'license_number'  => 'nullable|string|min:7|max:10',
         ]);
 
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role' => $validated['role']
+            'role' => $validated['role'],
+
+            // Optional fields
+            'phone'           => $validated['phone'],
+            'vehicle_type'    => $validated['vehicle_type'],
+            'license_number'  => $validated['license_number'],
         ]);
 
         $token = $user->createToken("api-token")->plainTextToken;

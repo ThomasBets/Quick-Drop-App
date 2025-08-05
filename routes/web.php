@@ -3,6 +3,7 @@
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DeliveryController;
 
 Route::get('/', function () {
     return inertia('Home');
@@ -28,4 +29,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    Route::resource('/deliveries', DeliveryController::class);
+
 });
