@@ -26,7 +26,7 @@ class DeliverySeeder extends Seeder
                 'dropoff_location_id' => $locations->random()->id,
                 'package_description' => 'Package #' . ($i + 1),
                 'status' => 'pending',
-                'estimated_time' => now()->addMinutes(rand(10, 180)),
+                'estimated_time' => null,
                 'delivered_at' => null,
             ]);
         }

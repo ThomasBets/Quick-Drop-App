@@ -2,7 +2,7 @@ import MainLayout from "../../Layouts/MainLayout";
 import { Link, router, usePage } from "@inertiajs/react";
 import { useState } from "react";
 
-export default function Order() {
+export default function DeliveryCreate() {
     const { locations } = usePage().props;
 
     const [formData, setFormData] = useState({
@@ -15,7 +15,7 @@ export default function Order() {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
 
-    function handleDelivery(e) {
+    function handleDeliveryCreate(e) {
         e.preventDefault();
         setLoading(true);
         setErrors({});
@@ -38,6 +38,8 @@ export default function Order() {
         });
     }
 
+    
+
     return (
         <MainLayout
             header={
@@ -47,9 +49,9 @@ export default function Order() {
             }
             main={
                 <div className="w-full max-w-xl">
-                    <form onSubmit={handleDelivery} className="form">
+                    <form onSubmit={handleDeliveryCreate} className="form">
                         <div className="mb-4">
-                            <label className="block mb-1">
+                            <label className="block mb-1 text">
                                 Pickup Location
                             </label>
                             <select
@@ -82,7 +84,7 @@ export default function Order() {
                         </div>
 
                         <div className="mb-4">
-                            <label className="block mb-1">
+                            <label className="block mb-1 text">
                                 Delivery Location
                             </label>
                             <select
@@ -115,7 +117,7 @@ export default function Order() {
                         </div>
 
                         <div className="mb-4">
-                            <label className="block mb-1">Package Description</label>
+                            <label className="block mb-1 text">Package Description</label>
                             <textarea
                                 className="form_field"
                                 value={formData.package_description}

@@ -13,7 +13,7 @@ export default function Dashboard() {
                 setErrors(errors);
                 setLoading(false);
             },
-            onSuccess: (page) => {
+            onSuccess: () => {
                 setLoading(false);
                 setMessage("Logout successful!");
             },
@@ -31,7 +31,7 @@ export default function Dashboard() {
                         </div>
                     ) : (
                         <div>
-                            <Link>Deliveries</Link>
+                            <Link href="/deliveries" className="link">List of Deliveries</Link>
                         </div>
                     )}
 

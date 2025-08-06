@@ -32,4 +32,5 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('/deliveries', DeliveryController::class);
 
+    Route::patch('/deliveries/{delivery}/accept', [DeliveryController::class, 'accept']);
 });

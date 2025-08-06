@@ -8,16 +8,60 @@ use App\Models\Location;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Redirect;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class DeliveryController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $user = Auth::user();
+        $driverLocation = $user->driverLocation;
+
+        if (!$driverLocation) {
+            abort(403, 'No driver location set.');
+        }
+
+        // Fetch all deliveries with their related locations
+        $deliveries = Delivery::with(['pickupLocation', 'dropoffLocation'])->get();
+
+        // Filter deliveries: both pickup and dropoff within 50km
+        $filtered = $deliveries->filter(function ($delivery) use ($driverLocation) {
+            if (!$delivery->pickupLocation || !$delivery->dropoffLocation) {
+                return false;
+            }
+
+            $pickupDistance = Delivery::locationsDistance(
+                $driverLocation->latitude,
+                $driverLocation->longitude,
+                $delivery->pickupLocation->latitude,
+                $delivery->pickupLocation->longitude
+            );
+
+            $dropoffDistance = Delivery::locationsDistance(
+                $driverLocation->latitude,
+                $driverLocation->longitude,
+                $delivery->dropoffLocation->latitude,
+                $delivery->dropoffLocation->longitude
+            );
+
+            return $pickupDistance <= 50 && $dropoffDistance <= 50;
+        })->values();
+
+        // Manual pagination (re-applied on every request)
+        $perPage = 10;
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+
+        $paginated = new LengthAwarePaginator(
+            $filtered->forPage($currentPage, $perPage)->values(),
+            $filtered->count(),
+            $perPage,
+            $currentPage,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+
+        return Inertia::render('Main/DeliveriesList', [
+            'deliveries' => $paginated,
+        ]);
     }
 
     /**
@@ -27,7 +71,7 @@ class DeliveryController extends Controller
     {
         $locations = Location::all();
 
-        return Inertia::render('Main/Delivery', ['locations' => $locations,]);
+        return Inertia::render('Main/DeliveryCreate', ['locations' => $locations,]);
     }
 
     /**
@@ -59,7 +103,9 @@ class DeliveryController extends Controller
      */
     public function show(Delivery $delivery)
     {
-        //
+        $delivery->load('pickupLocation', 'dropoffLocation');
+
+        return Inertia::render('Main/DeliveryShow', ['delivery' => $delivery,]);
     }
 
     /**
@@ -84,5 +130,22 @@ class DeliveryController extends Controller
     public function destroy(Delivery $delivery)
     {
         //
+    }
+
+    public function accept(Delivery $delivery)
+    {
+        $user = Auth::user();
+
+        if ($delivery->status !== 'pending') {
+            return response()->json(['error' => 'Delivery already accepted or completed'], 400);
+        }
+
+        $delivery->driver_id = $user->id;
+        $delivery->status = 'accepted';
+        $delivery->save();
+
+        return Inertia::render('Main/DeliveriesList', [
+            'deliveries' => Delivery::with('pickupLocation', 'dropoffLocation')->paginate(10),
+        ]);
     }
 }
