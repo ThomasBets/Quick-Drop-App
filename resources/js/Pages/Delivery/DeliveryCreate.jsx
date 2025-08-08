@@ -38,8 +38,6 @@ export default function DeliveryCreate() {
         });
     }
 
-    
-
     return (
         <MainLayout
             header={
@@ -117,7 +115,9 @@ export default function DeliveryCreate() {
                         </div>
 
                         <div className="mb-4">
-                            <label className="block mb-1 text">Package Description</label>
+                            <label className="block mb-1 text">
+                                Package Description
+                            </label>
                             <textarea
                                 className="form_field"
                                 value={formData.package_description}
@@ -131,7 +131,9 @@ export default function DeliveryCreate() {
                                 rows={3}
                             />
                             {errors.package_description && (
-                                <p className="error">{errors.package_description}</p>
+                                <p className="error">
+                                    {errors.package_description}
+                                </p>
                             )}
                         </div>
 

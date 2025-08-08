@@ -12,10 +12,13 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class DeliveryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
         $driverLocation = $user->driverLocation;
+
+        $sortField = $request->input('sort', 'status');
+        $direction = $request->input('direction', 'asc');
 
         if (!$driverLocation) {
             abort(403, 'No driver location set.');
@@ -47,22 +50,63 @@ class DeliveryController extends Controller
             return $pickupDistance <= 50 && $dropoffDistance <= 50;
         })->values();
 
+        $statusOrder = [
+            'pending' => 0,
+            'accepted' => 1,
+            'in_transit' => 2,
+            'delivered' => 3,
+            'cancelled' => 4,
+        ];
+
+        $sorted = $filtered->sort(function ($a, $b) use ($sortField, $direction, $statusOrder) {
+            // Helper: get values to compare
+            $getComparable = function ($item) use ($sortField, $statusOrder) {
+                if ($sortField === 'status') {
+                    return $statusOrder[$item->status] ?? 99;
+                } elseif ($sortField === 'distance') {
+                    return $item->distance ?? PHP_INT_MAX;
+                }
+                return $item->$sortField ?? null;
+            };
+
+            $valA = $getComparable($a);
+            $valB = $getComparable($b);
+
+            // Primary sort
+            $comparison = $direction === 'asc'
+                ? $valA <=> $valB
+                : $valB <=> $valA;
+
+            // If primary comparison is equal, sort by distance ascending
+            if ($comparison === 0 && $sortField !== 'distance') {
+                return ($a->distance ?? PHP_INT_MAX) <=> ($b->distance ?? PHP_INT_MAX);
+            }
+
+            return $comparison;
+        })->values();
+
         // Manual pagination (re-applied on every request)
         $perPage = 10;
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
 
         $paginated = new LengthAwarePaginator(
-            $filtered->forPage($currentPage, $perPage)->values(),
-            $filtered->count(),
+            $sorted->forPage($currentPage, $perPage)->values(),
+            $sorted->count(),
             $perPage,
             $currentPage,
-            ['path' => request()->url(), 'query' => request()->query()]
+            [
+                'path' => route('deliveries.index'),
+                'query' => request()->query()
+            ]
         );
 
-        return Inertia::render('Main/DeliveriesList', [
+        return Inertia::render('Delivery/DeliveriesList', [
             'deliveries' => $paginated,
+            'sortField' => $sortField,
+            'sortDirection' => $direction,
         ]);
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -71,7 +115,7 @@ class DeliveryController extends Controller
     {
         $locations = Location::all();
 
-        return Inertia::render('Main/DeliveryCreate', ['locations' => $locations,]);
+        return Inertia::render('Delivery/DeliveryCreate', ['locations' => $locations,]);
     }
 
     /**
@@ -93,19 +137,24 @@ class DeliveryController extends Controller
             'status' => 'pending',
         ]);
 
-        return redirect('/dashboard')->with([
-            'success' => 'Delivery request submitted successfully.',
-        ]);
+        return redirect("/deliveries/{$delivery->id}");
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Delivery $delivery)
+    public function show(Delivery $delivery, Request $request)
     {
+        $sort = $request->query('sort', 'status');
+        $direction = $request->query('direction', 'asc');
+
         $delivery->load('pickupLocation', 'dropoffLocation');
 
-        return Inertia::render('Main/DeliveryShow', ['delivery' => $delivery,]);
+        return Inertia::render('Delivery/DeliveryShow', [
+            'delivery' => $delivery,
+            'sort' => $sort,
+            'direction' => $direction
+        ]);
     }
 
     /**
@@ -132,9 +181,12 @@ class DeliveryController extends Controller
         //
     }
 
-    public function accept(Delivery $delivery)
+    public function accept(Delivery $delivery, Request $request)
     {
         $user = Auth::user();
+
+        $sort = $request->query('sort', 'status');
+        $direction = $request->query('direction', 'asc');
 
         if ($delivery->status !== 'pending') {
             return response()->json(['error' => 'Delivery already accepted or completed'], 400);
@@ -144,8 +196,10 @@ class DeliveryController extends Controller
         $delivery->status = 'accepted';
         $delivery->save();
 
-        return Inertia::render('Main/DeliveriesList', [
+        return Inertia::render('Delivery/DeliveriesList', [
             'deliveries' => Delivery::with('pickupLocation', 'dropoffLocation')->paginate(10),
+            'sort' => $sort,
+            'direction' => $direction
         ]);
     }
 }
