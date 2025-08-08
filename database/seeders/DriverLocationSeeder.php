@@ -19,8 +19,8 @@ class DriverLocationSeeder extends Seeder
         foreach ($drivers as $driver) {
             DriverLocation::create([
                 'driver_id' => $driver->id,
-                'latitude' => fake()->randomFloat(6, 37.75, 38.0),
-                'longitude' => fake()->randomFloat(6, -121.2, -121.1),
+                'latitude' => fake()->randomFloat(6, 37.25, 38.0),
+                'longitude' => fake()->randomFloat(6, -121.75, -121.0),
                 'updated_at' => now(),
             ]);
         }

@@ -47,7 +47,7 @@ class DeliveryController extends Controller
                 $delivery->dropoffLocation->longitude
             );
 
-            return $pickupDistance <= 50 && $dropoffDistance <= 50;
+            return $pickupDistance <= 50 && $dropoffDistance <= 50 && $delivery->distance <= 50;
         })->values();
 
         $statusOrder = [
