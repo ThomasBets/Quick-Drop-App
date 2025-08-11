@@ -17,6 +17,7 @@
     },
     "dependencies": {
         "@inertiajs/react": "^2.0.17",
+        "firebase": "^12.1.0",
         "react": "^19.1.1",
         "react-dom": "^19.1.1",
         "tailwindcss-textshadow": "^2.1.3"

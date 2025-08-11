@@ -28,7 +28,7 @@ class DeliveryController extends Controller
         $deliveries = Delivery::with(['pickupLocation', 'dropoffLocation'])->get();
 
         // Filter deliveries: both pickup and dropoff within 50km
-        $filtered = $deliveries->filter(function ($delivery) use ($driverLocation) {
+        /* $filtered = $deliveries->filter(function ($delivery) use ($driverLocation) {
             if (!$delivery->pickupLocation || !$delivery->dropoffLocation) {
                 return false;
             }
@@ -48,7 +48,7 @@ class DeliveryController extends Controller
             );
 
             return $pickupDistance <= 50 && $dropoffDistance <= 50 && $delivery->distance <= 50;
-        })->values();
+        })->values(); */
 
         $statusOrder = [
             'pending' => 0,
@@ -58,7 +58,7 @@ class DeliveryController extends Controller
             'cancelled' => 4,
         ];
 
-        $sorted = $filtered->sort(function ($a, $b) use ($sortField, $direction, $statusOrder) {
+        $sorted = $deliveries->sort(function ($a, $b) use ($sortField, $direction, $statusOrder) {
             // Helper: get values to compare
             $getComparable = function ($item) use ($sortField, $statusOrder) {
                 if ($sortField === 'status') {

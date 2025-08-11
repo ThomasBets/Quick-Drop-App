@@ -4,8 +4,6 @@ import { Link, router, usePage } from "@inertiajs/react";
 export default function DeliveryShow() {
     const { delivery, auth, sort, direction } = usePage().props;
 
-    console.log(sort, direction);
-
     function acceptDelivery(id) {
         router.patch(
             `/deliveries/${id}/accept`,

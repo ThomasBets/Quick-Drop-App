@@ -1,6 +1,8 @@
 import MainLayout from "../../Layouts/MainLayout";
 import { Link, router, usePage } from "@inertiajs/react";
 import { useState } from "react";
+import { db } from "../../firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 export default function DeliveryCreate() {
     const { locations } = usePage().props;
@@ -22,7 +24,7 @@ export default function DeliveryCreate() {
         setMessage("");
 
         router.post("/deliveries", formData, {
-            onSuccess: () => {
+            onSuccess: (page) => {
                 setLoading(false);
                 setMessage("Delivery created successfully!");
                 setFormData({
@@ -30,6 +32,22 @@ export default function DeliveryCreate() {
                     dropoff_location_id: "",
                     package_description: "",
                 });
+
+                // Get the new delivery from Laravel response (including distance)
+                const delivery = page.props.delivery;
+
+                // Save full delivery to Firestore
+                if (delivery?.id) {
+                    setDoc(doc(db, "deliveries", delivery.id.toString()), {
+                        ...delivery,
+                        createdAt: serverTimestamp(),
+                    }).catch((err) => {
+                        console.error(
+                            "Error adding delivery to Firestore:",
+                            err
+                        );
+                    });
+                }
             },
             onError: (errors) => {
                 setLoading(false);
@@ -137,10 +155,15 @@ export default function DeliveryCreate() {
                             )}
                         </div>
 
-                        {/* Submit Button */}
-                        <button type="submit" className="button">
-                            Request a Delivery
+                        <button
+                            type="submit"
+                            className="button"
+                            disabled={loading}
+                        >
+                            {loading ? "Submitting..." : "Request a Delivery"}
                         </button>
+
+                        {message && <p className="success mt-2">{message}</p>}
                     </form>
                 </div>
             }
