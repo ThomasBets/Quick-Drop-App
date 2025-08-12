@@ -1,44 +1,19 @@
-import MainLayout from "../../Layouts/MainLayout";
-import { Link, router, usePage } from "@inertiajs/react";
+import MainLayout from "../../../Layouts/MainLayout";
+import { Link, usePage } from "@inertiajs/react";
 
-export default function DeliveryShow() {
-    const { delivery, auth, sort, direction } = usePage().props;
+export default function SenderShow() {
+    const { delivery } = usePage().props;
 
-    function acceptDelivery(id) {
-        router.patch(
-            `/deliveries/${id}/accept`,
-            {},
-            {
-                onSuccess: () => {
-                    // Redirect back to the deliveries list page with sorting and pagination params if needed
-                    router.visit(
-                        `/deliveries?sort=${sort}&direction=${direction}`,
-                        {
-                            preserveState: false,
-                        }
-                    );
-                },
-            }
-        );
-    }
     return (
         <MainLayout
             header={
                 <div className="link space-x-5 mr-10">
-                    <Link
-                        href={
-                            auth.user?.role === "sender"
-                                ? "/dashboard"
-                                : `/deliveries?sort=${sort}&direction=${direction}`
-                        }
-                    >
-                        Back
-                    </Link>
+                    <Link href="/sender-deliveries">Back</Link>
                 </div>
             }
             main={
                 <div>
-                    {auth?.user?.role === "sender" && (
+                    {delivery.status !== "accepted" && (
                         <div className="flex justify-center text-3xl mb-10">
                             <p>Delivery request submitted successfully.</p>
                         </div>
@@ -101,19 +76,17 @@ export default function DeliveryShow() {
                                 </div>
                             </div>
                         )}
-                        {delivery.status === "pending" &&
-                            auth?.user?.role !== "sender" && (
-                                <div className="flex justify-center">
-                                    <button
-                                        onClick={() =>
-                                            acceptDelivery(delivery.id)
-                                        }
-                                        className="button"
-                                    >
-                                        Accept
-                                    </button>
-                                </div>
-                            )}
+
+                        {delivery.status === "accepted" && (
+                            <div className="flex justify-center">
+                                <button
+                                    onClick={() => acceptDelivery(delivery.id)}
+                                    className="button"
+                                >
+                                    Live Tracking
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             }

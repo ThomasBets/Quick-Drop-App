@@ -33,4 +33,12 @@ Route::middleware('auth')->group(function () {
     Route::resource('/deliveries', DeliveryController::class);
 
     Route::patch('/deliveries/{delivery}/accept', [DeliveryController::class, 'accept']);
+
+    Route::get('/sender-deliveries', function () {
+        return Inertia::render('Delivery/Sender/SenderDeliveries');
+    })->name('sender.deliveries');
+
+    Route::get('/driver-deliveries', function () {
+        return Inertia::render('Delivery/Driver/DeliveriesList');
+    })->name('driver.deliveries');
 });

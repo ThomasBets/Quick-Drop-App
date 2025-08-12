@@ -13,11 +13,11 @@ export default function MainLayout({ header, main }) {
                     <div className="space-x-5 ml-10 flex items-center text-4xl font-bold">
                         <img src="/images/logo.png" alt="Logo" />
                         {user ? (
-                            <Link href="/dashboard" className="text-teal-600">
+                            <Link href="/dashboard" className="text-teal-500">
                                 QuickDrop
                             </Link>
                         ) : (
-                            <Link href="/" className="text-teal-600">
+                            <Link href="/" className="text-teal-500">
                                 QuickDrop
                             </Link>
                         )}

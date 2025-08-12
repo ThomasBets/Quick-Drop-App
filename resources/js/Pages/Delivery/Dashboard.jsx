@@ -24,14 +24,26 @@ export default function Dashboard() {
             header={
                 <div className="flex flex-1 w-full items-center justify-between px-10">
                     {user?.role === "sender" ? (
-                        <div>
-                            <Link href="/deliveries/create" className="link">
-                                Delivery Request
-                            </Link>
+                        <div className="flex space-x-5">
+                            <div>
+                                <Link
+                                    href="/deliveries/create"
+                                    className="link"
+                                >
+                                    Delivery Request
+                                </Link>
+                            </div>
+                            <div>
+                                <Link href="/sender-deliveries" className="link">
+                                    My Deliveries
+                                </Link>
+                            </div>
                         </div>
                     ) : (
                         <div>
-                            <Link href="/deliveries" className="link">List of Deliveries</Link>
+                            <Link href="/driver-deliveries" className="link">
+                                List of Deliveries
+                            </Link>
                         </div>
                     )}
 

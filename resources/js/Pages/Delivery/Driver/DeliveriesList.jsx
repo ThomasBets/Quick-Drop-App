@@ -1,87 +1,88 @@
-import MainLayout from "../../Layouts/MainLayout";
-import { Link, router, usePage } from "@inertiajs/react";
-import Pagination from "../../Components/Pagination";
+import MainLayout from "../../../Layouts/MainLayout";
+import { Link, usePage } from "@inertiajs/react";
+import Pagination from "../../../Components/Pagination";
 import { useEffect, useState } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
-import { db } from "../../firebase";
+import { db } from "../../../firebase";
+
+const ITEMS_PER_PAGE = 10;
 
 export default function DeliveriesList() {
-    const { deliveries, sortField, sortDirection } = usePage().props;
-
-    const [currentSortField, setCurrentSortField] = useState(sortField || "");
-    const [currentSortDirection, setCurrentSortDirection] = useState(
-        sortDirection || "asc"
+    const {
+        sort: initialSort,
+        direction: initialDirection,
+        page: initialPage,
+    } = usePage().props;
+    // Sort & paging state
+    const [sortField, setSortField] = useState(initialSort || "status");
+    const [sortDirection, setSortDirection] = useState(
+        initialDirection || "asc"
     );
+    const [currentPage, setCurrentPage] = useState(Number(initialPage) || 1);
 
-    // Αρχικό state από Laravel backend
-    const [deliveryList, setDeliveryList] = useState(deliveries?.data || []);
+    // Full list from Firestore
+    const [allDeliveries, setAllDeliveries] = useState([]);
+    // Deliveries to display on current page after sort & pagination
+    const [deliveryList, setDeliveryList] = useState([]);
 
-    const handleSortClick = (field) => {
-        let direction = "asc";
-        if (currentSortField === field) {
-            direction = currentSortDirection === "asc" ? "desc" : "asc";
-        }
-        setCurrentSortField(field);
-        setCurrentSortDirection(direction);
-
-        router.get(
-            "/deliveries",
-            { sort: field, direction },
-            { preserveScroll: true, preserveState: true }
-        );
-    };
-
-    const handlePageClick = (pageUrl) => {
-        if (!pageUrl) return;
-        const url = new URL(pageUrl);
-        const params = new URLSearchParams(url.search);
-
-        params.set("sort", currentSortField);
-        params.set("direction", currentSortDirection);
-
-        router.visit(`${url.pathname}?${params.toString()}`);
-    };
-
+    // Fetch deliveries live from Firestore
     useEffect(() => {
         const deliveriesRef = collection(db, "deliveries");
 
         const unsubscribe = onSnapshot(deliveriesRef, (snapshot) => {
-            snapshot.docChanges().forEach((change) => {
-                const newDelivery = { id: change.doc.id, ...change.doc.data() };
-
-                setDeliveryList((prevList) => {
-                    const existsIndex = prevList.findIndex(
-                        (d) => d.id === newDelivery.id
-                    );
-
-                    if (change.type === "added") {
-                        if (existsIndex === -1 && newDelivery.pickup_location) {
-                            // Only add if it's a completely new doc AND has required data
-                            return [newDelivery, ...prevList];
-                        }
-                    } else if (change.type === "modified") {
-                        if (existsIndex !== -1) {
-                            const updatedList = [...prevList];
-                            updatedList[existsIndex] = {
-                                ...updatedList[existsIndex],
-                                ...newDelivery,
-                            };
-                            return updatedList;
-                        }
-                    } else if (change.type === "removed") {
-                        if (existsIndex !== -1) {
-                            return prevList.filter(
-                                (d) => d.id !== newDelivery.id
-                            );
-                        }
-                    }
-                    return prevList;
-                });
-            });
+            const deliveries = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+            setAllDeliveries(deliveries);
         });
 
         return () => unsubscribe();
     }, []);
+
+    // Sort & paginate whenever dependencies change
+    useEffect(() => {
+        let sorted = [...allDeliveries];
+
+        // Sorting logic, similar to your backend
+        sorted.sort((a, b) => {
+            let valA = a[sortField];
+            let valB = b[sortField];
+
+            // Status custom order
+            if (sortField === "status") {
+                const statusOrder = { pending: 1, active: 2, completed: 3 };
+                valA = statusOrder[valA] ?? 99;
+                valB = statusOrder[valB] ?? 99;
+            }
+
+            if (valA == null) valA = Infinity;
+            if (valB == null) valB = Infinity;
+
+            if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+            if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+            return 0;
+        });
+
+        // Paginate
+        const start = (currentPage - 1) * ITEMS_PER_PAGE;
+        const paged = sorted.slice(start, start + ITEMS_PER_PAGE);
+
+        setDeliveryList(paged);
+    }, [allDeliveries, sortField, sortDirection, currentPage]);
+
+    const totalPages = Math.ceil(allDeliveries.length / ITEMS_PER_PAGE);
+
+    // Sort button click
+    const handleSortClick = (field) => {
+        if (sortField === field) {
+            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+        } else {
+            setSortField(field);
+            setSortDirection("asc");
+        }
+        setCurrentPage(1);
+    };
 
     return (
         <MainLayout
@@ -114,10 +115,8 @@ export default function DeliveriesList() {
                                                 src="/images/arrow-down.svg"
                                                 alt=""
                                                 className={`w-5 h-5 ml-1 transition-transform duration-200 ${
-                                                    currentSortField ===
-                                                        "status" &&
-                                                    currentSortDirection ===
-                                                        "asc"
+                                                    sortField === "status" &&
+                                                    sortDirection === "asc"
                                                         ? "rotate-180"
                                                         : ""
                                                 }`}
@@ -136,10 +135,8 @@ export default function DeliveriesList() {
                                                 src="/images/arrow-down.svg"
                                                 alt=""
                                                 className={`w-5 h-5 ml-1 transition-transform duration-200 ${
-                                                    currentSortField ===
-                                                        "distance" &&
-                                                    currentSortDirection ===
-                                                        "asc"
+                                                    sortField === "distance" &&
+                                                    sortDirection === "asc"
                                                         ? "rotate-180"
                                                         : ""
                                                 }`}
@@ -153,28 +150,38 @@ export default function DeliveriesList() {
                                     <tr key={delivery.id}>
                                         <td className="px-4 py-3">
                                             <Link
-                                                href={`/deliveries/${delivery.id}?direction=${currentSortDirection}&sort=${currentSortField}`}
+                                                href={`/deliveries/${delivery.id}`}
                                             >
-                                                {delivery.pickup_location
-                                                    ?.address || "-"}
+                                                {
+                                                    delivery.pickup_location
+                                                        ?.address
+                                                }
                                             </Link>
                                         </td>
                                         <td className="px-4 py-3">
                                             <Link
-                                                href={`/deliveries/${delivery.id}?direction=${currentSortDirection}&sort=${currentSortField}`}
+                                                href={`/deliveries/${delivery.id}`}
                                             >
-                                                {delivery.dropoff_location
-                                                    ?.address || "-"}
+                                                {
+                                                    delivery.dropoff_location
+                                                        ?.address
+                                                }
                                             </Link>
                                         </td>
                                         <td className="px-4 py-3">
-                                            {delivery.status}
+                                            <Link
+                                                href={`/deliveries/${delivery.id}`}
+                                            >
+                                                {delivery.status}
+                                            </Link>
                                         </td>
                                         <td className="px-4 py-3">
-                                            {delivery.distance
-                                                ? delivery.distance.toFixed(2)
-                                                : "-"}{" "}
-                                            km
+                                            <Link
+                                                href={`/deliveries/${delivery.id}`}
+                                            >
+                                                {delivery.distance?.toFixed(2)}{" "}
+                                                km
+                                            </Link>
                                         </td>
                                     </tr>
                                 ))}
@@ -183,8 +190,9 @@ export default function DeliveriesList() {
                     </div>
 
                     <Pagination
-                        links={deliveries.links}
-                        onPageClick={handlePageClick}
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={(page) => setCurrentPage(page)}
                     />
                 </div>
             }

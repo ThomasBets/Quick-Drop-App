@@ -1,8 +1,8 @@
-import MainLayout from "../../Layouts/MainLayout";
+import MainLayout from "../../../Layouts/MainLayout";
 import { Link, router, usePage } from "@inertiajs/react";
 import { useState } from "react";
-import { db } from "../../firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "../../../firebase";
+import { setDoc, doc, serverTimestamp } from "firebase/firestore";
 
 export default function DeliveryCreate() {
     const { locations } = usePage().props;
@@ -23,7 +23,7 @@ export default function DeliveryCreate() {
         setErrors({});
         setMessage("");
 
-        router.post("/deliveries", formData, {
+        router.post("/sender-deliveries", formData, {
             onSuccess: (page) => {
                 setLoading(false);
                 setMessage("Delivery created successfully!");
