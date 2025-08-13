@@ -1,5 +1,6 @@
 import MainLayout from "../../../Layouts/MainLayout";
 import { Link, router, usePage } from "@inertiajs/react";
+import LiveSimulation from "../../../Pages/Delivery/Driver/LiveSimulation";
 
 export default function DriverShow() {
     const { delivery, auth } = usePage().props;
@@ -11,6 +12,24 @@ export default function DriverShow() {
             {
                 onSuccess: () => {
                     // Redirect back to the deliveries list page with sorting and pagination params if needed
+                    LiveSimulation(
+                        id,
+                        {
+                            latitude: auth.driver_location.latitude,
+                            longitude: auth.driver_location.longitude,
+                        },
+                        {
+                            latitude: delivery.pickup_location.latitude,
+                            longitude: delivery.pickup_location.longitude,
+                        },
+                        {
+                            latitude: delivery.dropoff_location.latitude,
+                            longitude: delivery.dropoff_location.longitude,
+                        },
+                        delivery.estimated_time
+                    );
+
+                    // Προαιρετικά επιστροφή στη λίστα
                     router.visit("/driver-deliveries", {
                         preserveState: false,
                     });
@@ -64,7 +83,7 @@ export default function DriverShow() {
                     {delivery.estimated_time && (
                         <div className="mb-4">
                             <label className="block text font-medium">
-                                Estimated Time
+                                Estimated Delivery
                             </label>
                             <div className="mt-1 p-2 bg-teal-200 rounded">
                                 {delivery.estimated_time}

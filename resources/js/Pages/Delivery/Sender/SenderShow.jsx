@@ -1,6 +1,7 @@
 import MainLayout from "../../../Layouts/MainLayout";
 import { Link, usePage } from "@inertiajs/react";
 
+
 export default function SenderShow() {
     const { delivery } = usePage().props;
 
@@ -58,7 +59,7 @@ export default function SenderShow() {
                         {delivery.estimated_time && (
                             <div className="mb-4">
                                 <label className="block text font-medium">
-                                    Estimated Time
+                                    Estimated Delivery
                                 </label>
                                 <div className="mt-1 p-2 bg-teal-200 rounded">
                                     {delivery.estimated_time}
@@ -77,7 +78,8 @@ export default function SenderShow() {
                             </div>
                         )}
 
-                        {delivery.status === "accepted" && (
+                        {(delivery.status === "accepted" ||
+                            delivery.status === "in_transit") && (
                             <div className="flex justify-center">
                                 <button
                                     onClick={() => acceptDelivery(delivery.id)}

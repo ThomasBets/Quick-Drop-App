@@ -80,4 +80,28 @@ class FirestoreSyncService
             $this->syncDelivery($delivery);
         }
     }
+
+    // Sync driver's location to firebase
+    public function syncDriverLocation($driverLocation): bool
+    {
+        if (!$this->projectId || !$this->token) {
+            throw new \Exception('FIREBASE_PROJECT_ID and FIREBASE_ACCESS_TOKEN must be set.');
+        }
+
+        $docId = "driver_{$driverLocation->driver_id}";
+        $url = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents/driver_locations/{$docId}";
+
+        $data = [
+            'fields' => [
+                'driver_id' => ['integerValue' => $driverLocation->driver_id],
+                'latitude' => ['doubleValue' => $driverLocation->latitude],
+                'longitude' => ['doubleValue' => $driverLocation->longitude],
+                'updatedAt' => ['timestampValue' => now()->toIso8601String()],
+            ],
+        ];
+
+        $response = Http::withToken($this->token)->patch($url, $data);
+
+        return $response->successful();
+    }
 }

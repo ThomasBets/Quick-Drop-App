@@ -2,65 +2,60 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Delivery;
+use Illuminate\Http\Request;
 use App\Models\DriverLocation;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Services\FirestoreSyncService;
 
 class DriverLocationController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function updateLocation(Request $request, Delivery $delivery, FirestoreSyncService $syncService)
     {
-        //
-    }
+        $user = Auth::user();
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+        if ($delivery->driver_id !== $user->id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+        $request->validate([
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(DriverLocation $driverLocation)
-    {
-        //
-    }
+        // Ενημέρωση driver_location
+        $driverLocation = $user->driverLocation;
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(DriverLocation $driverLocation)
-    {
-        //
-    }
+        $driverLocation->latitude = $request->latitude;
+        $driverLocation->longitude = $request->longitude;
+        $driverLocation->save();
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, DriverLocation $driverLocation)
-    {
-        //
-    }
+        // Έλεγχος για αλλαγή status
+        $distToPickup = Delivery::locationsDistance(
+            $driverLocation->latitude,
+            $driverLocation->longitude,
+            $delivery->pickupLocation->latitude,
+            $delivery->pickupLocation->longitude
+        );
+        $distToDropoff = Delivery::locationsDistance(
+            $driverLocation->latitude,
+            $driverLocation->longitude,
+            $delivery->dropoffLocation->latitude,
+            $delivery->dropoffLocation->longitude
+        );
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(DriverLocation $driverLocation)
-    {
-        //
+        if ($delivery->status === 'accepted' && $distToPickup <= 0.01) {
+            $delivery->status = 'in_transit';
+            $delivery->save();
+        } elseif ($delivery->status === 'in_transit' && $distToDropoff <= 0.01) {
+            $delivery->status = 'delivered';
+            $delivery->save();
+        }
+        $syncService->syncDelivery($delivery);
+        // Sync τοποθεσίας στο Firestore
+        $syncService->syncDriverLocation($driverLocation);
+
+        return response()->json(['success' => true]);
     }
 }

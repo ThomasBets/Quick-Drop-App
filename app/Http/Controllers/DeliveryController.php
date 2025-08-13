@@ -120,6 +120,22 @@ class DeliveryController extends Controller
 
         $delivery->driver_id = $user->id;
         $delivery->status = 'accepted';
+
+        // Υπολογισμός απόστασης: driver -> pickup + pickup -> dropoff
+        $driverLocation = $user->driverLocation; // σχέση driver -> driver_location
+
+        $distanceToPickup = Delivery::locationsDistance(
+            $driverLocation->latitude,
+            $driverLocation->longitude,
+            $delivery->pickupLocation->latitude,
+            $delivery->pickupLocation->longitude
+        );
+        $deliveryDistance = $distanceToPickup + $delivery->distance; // pickup->dropoff distance
+
+        $speed = 50; // km/h
+        $totalTimeHours = $deliveryDistance / $speed;
+        $delivery->estimated_time = now()->addSeconds($totalTimeHours * 3600);
+
         $delivery->save();
 
         $syncService->syncDelivery($delivery);

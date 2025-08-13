@@ -21,7 +21,7 @@ return new class extends Migration
             $table->foreignId('dropoff_location_id')->constrained('locations')->cascadeOnDelete();
 
             $table->string('package_description')->nullable();
-            $table->enum('status', ['pending', 'accepted', 'in_transit', 'delivered', 'cancelled']);;
+            $table->enum('status', ['pending', 'accepted', 'in_transit', 'delivered']);;
             $table->dateTime('estimated_time')->nullable();
             $table->timestamp('delivered_at')->nullable();
 
