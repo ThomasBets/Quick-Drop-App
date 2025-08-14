@@ -6,27 +6,42 @@ export default function DriverShow() {
     const { delivery, auth } = usePage().props;
 
     function acceptDelivery(id) {
+
         router.patch(
             `/deliveries/${id}/accept`,
             {},
             {
-                onSuccess: () => {
+                onSuccess: (page) => {
+
+                    const updatedDelivery = page.props.delivery;
+
+                    console.log(updatedDelivery.estimated_time);
+
+
+                    if (!updatedDelivery.estimated_time) {
+                    console.error("No estimated_time available for simulation");
+                    return;
+                }
                     // Redirect back to the deliveries list page with sorting and pagination params if needed
                     LiveSimulation(
-                        id,
+                        updatedDelivery.id,
                         {
                             latitude: auth.driver_location.latitude,
                             longitude: auth.driver_location.longitude,
                         },
                         {
-                            latitude: delivery.pickup_location.latitude,
-                            longitude: delivery.pickup_location.longitude,
+                            latitude: updatedDelivery.pickup_location.latitude,
+                            longitude: updatedDelivery.pickup_location.longitude,
                         },
                         {
-                            latitude: delivery.dropoff_location.latitude,
-                            longitude: delivery.dropoff_location.longitude,
+                            latitude: updatedDelivery.dropoff_location.latitude,
+                            longitude: updatedDelivery.dropoff_location.longitude,
                         },
-                        delivery.estimated_time
+                        updatedDelivery.estimated_time,
+
+
+
+
                     );
 
                     // Προαιρετικά επιστροφή στη λίστα

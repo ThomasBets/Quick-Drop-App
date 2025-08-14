@@ -1,9 +1,11 @@
 <?php
 
 use Inertia\Inertia;
+use App\Models\Delivery;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DeliveryController;
+use App\Http\Controllers\DriverLocationController;
 
 Route::get('/', function () {
     return inertia('Home');
@@ -36,9 +38,21 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/sender-deliveries', function () {
         return Inertia::render('Delivery/Sender/SenderDeliveries');
-    })->name('sender.deliveries');
+    });
 
     Route::get('/driver-deliveries', function () {
         return Inertia::render('Delivery/Driver/DeliveriesList');
-    })->name('driver.deliveries');
+    });
+
+    Route::patch('/deliveries/{delivery}/location', [DriverLocationController::class, 'updateLocation']);
+
+    Route::get('/sender-deliveries/{delivery}/track', function (Delivery $delivery) {
+        // Φορτώνουμε τις σχέσεις pickupLocation και dropoffLocation
+        $delivery->load(['pickupLocation', 'dropoffLocation']);
+
+        // Επιστρέφουμε τη σελίδα LiveTracking μέσω Inertia
+        return Inertia::render('Delivery/Sender/LiveTrackingMap', [
+            'delivery' => $delivery,
+        ]);
+    });
 });

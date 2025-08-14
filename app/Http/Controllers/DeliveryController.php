@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Inertia\Inertia;
 use App\Models\Delivery;
 use App\Models\Location;
@@ -71,7 +72,7 @@ class DeliveryController extends Controller
     {
         $delivery->load('pickupLocation', 'dropoffLocation');
 
-        $user = Auth::user();
+        $user = User::with('driverLocation')->find(Auth::id());
 
         if ($user->role === 'sender') {
 
@@ -82,6 +83,7 @@ class DeliveryController extends Controller
 
             return Inertia::render('Delivery/Driver/DriverShow', [
                 'delivery' => $delivery,
+                'auth' => $user,
             ]);
         }
     }
@@ -140,6 +142,6 @@ class DeliveryController extends Controller
 
         $syncService->syncDelivery($delivery);
 
-        return Inertia::render('Delivery/Driver/DeliveriesList');
+        return Inertia::render('Delivery/Driver/DeliveriesList', ['delivery' => $delivery]);
     }
 }

@@ -18,8 +18,8 @@ class LocationFactory extends Factory
     {
         return [
             'address' => fake()->address,
-            'latitude' => fake()->randomFloat(6, 37.25, 38.0),
-            'longitude' => fake()->randomFloat(6, -121.75, -121.0),
+            'latitude' => fake()->randomFloat(6, 37.5, 38.0),
+            'longitude' => fake()->randomFloat(6, -121.5, -121.0),
         ];
     }
 }

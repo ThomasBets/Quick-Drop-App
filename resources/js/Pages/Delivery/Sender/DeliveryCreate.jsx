@@ -23,7 +23,7 @@ export default function DeliveryCreate() {
         setErrors({});
         setMessage("");
 
-        router.post("/sender-deliveries", formData, {
+        router.post("/deliveries", formData, {
             onSuccess: (page) => {
                 setLoading(false);
                 setMessage("Delivery created successfully!");

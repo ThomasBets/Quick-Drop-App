@@ -1,10 +1,9 @@
 import MainLayout from "../../../Layouts/MainLayout";
-import { Link, usePage } from "@inertiajs/react";
+import { Link, router, usePage } from "@inertiajs/react";
 
 
 export default function SenderShow() {
     const { delivery } = usePage().props;
-
     return (
         <MainLayout
             header={
@@ -82,7 +81,7 @@ export default function SenderShow() {
                             delivery.status === "in_transit") && (
                             <div className="flex justify-center">
                                 <button
-                                    onClick={() => acceptDelivery(delivery.id)}
+                                    onClick={() => router.visit(`/sender-deliveries/${delivery.id}/track`)}
                                     className="button"
                                 >
                                     Live Tracking

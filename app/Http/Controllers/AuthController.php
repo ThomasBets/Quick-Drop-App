@@ -3,12 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Inertia\Inertia;
 use Illuminate\Http\Request;
+use App\Models\DriverLocation;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
-use Inertia\Inertia;
 
 class AuthController extends Controller
 {
@@ -52,6 +53,14 @@ class AuthController extends Controller
             'vehicle_type'    => $request->vehicle_type,
             'license_number'  => $request->license_number,
         ]);
+
+        if ($user->role === 'driver') {
+            DriverLocation::create([
+                'driver_id' => $user->id,
+                'latitude' => fake()->randomFloat(6, 37.25, 38.0),
+                'longitude' => fake()->randomFloat(6, -121.75, -121.0),
+            ]);
+        }
 
         Auth::login($user);
         return Inertia::location('/dashboard');
