@@ -1,6 +1,12 @@
 import MainLayout from "../../../Layouts/MainLayout";
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
+import {
+    MapContainer,
+    TileLayer,
+    Marker,
+    Polyline,
+    Tooltip,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { doc, onSnapshot } from "firebase/firestore";
@@ -77,14 +83,22 @@ export default function LiveTrackingMap({ delivery }) {
                             iconUrl: "/images/pickup-icon.png",
                             iconSize: [20, 30],
                         })}
-                    />
+                    >
+                        <Tooltip direction="top" hover>
+                            {delivery.pickup_location.address}
+                        </Tooltip>
+                    </Marker>
                     <Marker
                         position={dropoffLatLng}
                         icon={L.icon({
                             iconUrl: "/images/dropoff-icon.png",
                             iconSize: [20, 30],
                         })}
-                    />
+                    >
+                        <Tooltip direction="top" hover>
+                            {delivery.dropoff_location.address}
+                        </Tooltip>
+                    </Marker>
                     <Polyline
                         positions={[driverLatLng, pickupLatLng]}
                         color="red"

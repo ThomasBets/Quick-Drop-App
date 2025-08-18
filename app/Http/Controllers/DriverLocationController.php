@@ -50,6 +50,7 @@ class DriverLocationController extends Controller
             $delivery->save();
         } elseif ($delivery->status === 'in_transit' && $distToDropoff <= 0.01) {
             $delivery->status = 'delivered';
+            $delivery->delivered_at = now();
             $delivery->save();
         }
         $syncService->syncDelivery($delivery);

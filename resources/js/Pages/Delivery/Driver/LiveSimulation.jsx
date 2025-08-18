@@ -1,7 +1,7 @@
 import axios from "axios";
 
-let liveSimIntervalId = null; // κρατάει το global interval
-let currentDeliveryId = null; // κρατάει ποια παράδοση τρέχει
+let liveSimTimeoutId = null; // holds the timeout
+let currentDeliveryId = null; // which delivery is running
 
 export default async function LiveSimulation(
     deliveryId,
@@ -10,16 +10,16 @@ export default async function LiveSimulation(
     dropoffLocation,
     estimated_time
 ) {
-    // Αν τρέχει ήδη παράδοση (ίδια ή άλλη) → σταματάμε
-    if (liveSimIntervalId) {
-        clearInterval(liveSimIntervalId);
-        liveSimIntervalId = null;
+    // Stop any running simulation
+    if (liveSimTimeoutId) {
+        clearTimeout(liveSimTimeoutId);
+        liveSimTimeoutId = null;
         currentDeliveryId = null;
     }
 
     currentDeliveryId = deliveryId;
 
-    // Μετατροπή σε αριθμούς
+    // Convert to numbers
     let driverLatitude = parseFloat(driverLocation.latitude);
     let driverLongitude = parseFloat(driverLocation.longitude);
     const pickupLatitude = parseFloat(pickupLocation.latitude);
@@ -27,25 +27,9 @@ export default async function LiveSimulation(
     const dropoffLatitude = parseFloat(dropoffLocation.latitude);
     const dropoffLongitude = parseFloat(dropoffLocation.longitude);
 
-    // Υπολογισμός αποστάσεων
-    const distanceToPickup = distanceInKm(
-        driverLatitude,
-        driverLongitude,
-        pickupLatitude,
-        pickupLongitude
-    );
-    const distanceToDropoff = distanceInKm(
-        pickupLatitude,
-        pickupLongitude,
-        dropoffLatitude,
-        dropoffLongitude
-    );
-
-    // Συνολική διάρκεια μέχρι το estimated_time
+    // Total duration in ms
     const endTime = new Date(estimated_time);
     const totalMs = endTime - Date.now();
-
-    // Βήματα = κάθε 5 sec
     const intervalMs = 5000;
     const totalSteps = Math.max(1, Math.floor(totalMs / intervalMs));
 
@@ -80,16 +64,15 @@ export default async function LiveSimulation(
 
     let index = 0;
 
-    // Ξεκινάμε νέο interval
-    liveSimIntervalId = setInterval(async () => {
-        // αν φτάσαμε στο τέλος ή αν η παράδοση άλλαξε
-        if (index >= waypoints.length || deliveryId !== currentDeliveryId || !liveSimIntervalId) {
-            clearInterval(liveSimIntervalId);
-            liveSimIntervalId = null;
+    // Recursive function using setTimeout
+    const tick = async () => {
+        if (index >= waypoints.length || deliveryId !== currentDeliveryId) {
+            liveSimTimeoutId = null;
             currentDeliveryId = null;
             return;
         }
 
+        const start = Date.now();
         const waypoint = waypoints[index];
 
         try {
@@ -101,19 +84,25 @@ export default async function LiveSimulation(
         } catch (error) {
             console.error("Error updating driver location:", error);
             if (error.response?.status === 403) {
-            cancelLiveSimulation(deliveryId);
-        }
+                cancelLiveSimulation(deliveryId);
+                return;
+            }
         }
 
         index++;
-    }, intervalMs);
+        const elapsed = Date.now() - start;
+        const nextDelay = Math.max(0, intervalMs - elapsed);
+        liveSimTimeoutId = setTimeout(tick, nextDelay);
+    };
+
+    tick();
 }
 
-// ➕ Cancel χειροκίνητα
+// ➕ Cancel manually
 export function cancelLiveSimulation(deliveryId) {
-    if (liveSimIntervalId && deliveryId === currentDeliveryId) {
-        clearInterval(liveSimIntervalId);
-        liveSimIntervalId = null;
+    if (liveSimTimeoutId && deliveryId === currentDeliveryId) {
+        clearTimeout(liveSimTimeoutId);
+        liveSimTimeoutId = null;
         currentDeliveryId = null;
     }
 }

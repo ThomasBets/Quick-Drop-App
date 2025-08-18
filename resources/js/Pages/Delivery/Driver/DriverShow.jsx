@@ -129,7 +129,7 @@ export default function DriverShow() {
                             </button>
                         </div>
                     )}
-                    {delivery.status !== "pending" && (
+                     {delivery.status !== "pending" && delivery.status !== "delivered" && (
                         <button
                             type="button"
                             onClick={() => cancelDelivery(delivery.id)}

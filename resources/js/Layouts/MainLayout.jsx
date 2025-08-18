@@ -8,7 +8,7 @@ export default function MainLayout({ header, main }) {
         <div className="w-screen h-screen flex flex-col bg-teal-50">
             {/* Header Section */}
             <header>
-                <div className="flex justify-between items-center h-20">
+                <div className="flex justify-between items-center h-22">
                     {/* Logo and App Title */}
                     <div className="space-x-5 ml-10 flex items-center text-4xl font-bold">
                         <img src="/images/logo.png" alt="Logo" />
