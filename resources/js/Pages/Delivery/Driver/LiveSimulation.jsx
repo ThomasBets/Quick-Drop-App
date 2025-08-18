@@ -29,7 +29,9 @@ export default async function LiveSimulation(
 
     // Total duration in ms
     const endTime = new Date(estimated_time);
+
     const totalMs = endTime - Date.now();
+
     const intervalMs = 5000;
     const totalSteps = Math.max(1, Math.floor(totalMs / intervalMs));
 
@@ -44,7 +46,6 @@ export default async function LiveSimulation(
         waypoints.push({
             latitude: parseFloat(latitude.toFixed(6)),
             longitude: parseFloat(longitude.toFixed(6)),
-            status: i < Math.floor(totalSteps / 2) ? "accepted" : "in_transit",
         });
     }
 
@@ -58,7 +59,6 @@ export default async function LiveSimulation(
         waypoints.push({
             latitude: parseFloat(latitude.toFixed(6)),
             longitude: parseFloat(longitude.toFixed(6)),
-            status: i < Math.ceil(totalSteps / 2) ? "in_transit" : "delivered",
         });
     }
 
@@ -79,7 +79,6 @@ export default async function LiveSimulation(
             await axios.patch(`/deliveries/${deliveryId}/location`, {
                 latitude: waypoint.latitude,
                 longitude: waypoint.longitude,
-                status: waypoint.status,
             });
         } catch (error) {
             console.error("Error updating driver location:", error);
@@ -98,7 +97,7 @@ export default async function LiveSimulation(
     tick();
 }
 
-// ➕ Cancel manually
+//  Cancel manually
 export function cancelLiveSimulation(deliveryId) {
     if (liveSimTimeoutId && deliveryId === currentDeliveryId) {
         clearTimeout(liveSimTimeoutId);
@@ -106,6 +105,8 @@ export function cancelLiveSimulation(deliveryId) {
         currentDeliveryId = null;
     }
 }
+
+// Haversine method
 
 function distanceInKm(lat1, lon1, lat2, lon2) {
     const latFrom = (lat1 * Math.PI) / 180;

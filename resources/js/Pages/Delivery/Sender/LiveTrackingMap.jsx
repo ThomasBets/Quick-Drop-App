@@ -49,9 +49,9 @@ export default function LiveTrackingMap({ delivery }) {
 
     if (!driverLocation) return <p>Loading driver location...</p>;
 
-    const driverLatLng = [driverLocation.latitude, driverLocation.longitude];
-    const pickupLatLng = [pickupLocation.latitude, pickupLocation.longitude];
-    const dropoffLatLng = [dropoffLocation.latitude, dropoffLocation.longitude];
+    const driverCoordinates = [driverLocation.latitude, driverLocation.longitude];
+    const pickupCoordinates = [pickupLocation.latitude, pickupLocation.longitude];
+    const dropoffCoordinates = [dropoffLocation.latitude, dropoffLocation.longitude];
 
     return (
         <MainLayout
@@ -62,7 +62,7 @@ export default function LiveTrackingMap({ delivery }) {
             }
             main={
                 <MapContainer
-                    center={driverLatLng}
+                    center={driverCoordinates}
                     zoom={13}
                     style={{ height: "100%", width: "100%" }}
                 >
@@ -71,40 +71,40 @@ export default function LiveTrackingMap({ delivery }) {
                         attribution="&copy; OpenStreetMap contributors"
                     />
                     <Marker
-                        position={driverLatLng}
+                        position={driverCoordinates}
                         icon={L.icon({
                             iconUrl: "/images/driver-icon.png",
                             iconSize: [40, 40],
                         })}
                     />
                     <Marker
-                        position={pickupLatLng}
+                        position={pickupCoordinates}
                         icon={L.icon({
                             iconUrl: "/images/pickup-icon.png",
                             iconSize: [20, 30],
                         })}
                     >
                         <Tooltip direction="top" hover>
-                            {delivery.pickup_location.address}
+                            Pickup Address: {delivery.pickup_location.address}
                         </Tooltip>
                     </Marker>
                     <Marker
-                        position={dropoffLatLng}
+                        position={dropoffCoordinates}
                         icon={L.icon({
                             iconUrl: "/images/dropoff-icon.png",
                             iconSize: [20, 30],
                         })}
                     >
                         <Tooltip direction="top" hover>
-                            {delivery.dropoff_location.address}
+                            Dropoff Address: {delivery.dropoff_location.address}
                         </Tooltip>
                     </Marker>
                     <Polyline
-                        positions={[driverLatLng, pickupLatLng]}
+                        positions={[driverCoordinates, pickupCoordinates]}
                         color="red"
                     />
                     <Polyline
-                        positions={[pickupLatLng, dropoffLatLng]}
+                        positions={[pickupCoordinates, dropoffCoordinates]}
                         color="blue"
                     />
                 </MapContainer>

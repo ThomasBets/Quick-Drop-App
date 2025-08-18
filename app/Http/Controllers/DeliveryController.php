@@ -133,7 +133,7 @@ class DeliveryController extends Controller
         );
         $deliveryDistance = $distanceToPickup + $delivery->distance; // pickup->dropoff distance
 
-        $speed = 50; // km/h
+        $speed = 60; // km/h
         $totalTimeHours = $deliveryDistance / $speed;
         $delivery->estimated_time = now()->addSeconds($totalTimeHours * 3600);
 

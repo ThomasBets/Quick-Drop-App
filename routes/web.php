@@ -4,6 +4,7 @@ use Inertia\Inertia;
 use App\Models\Delivery;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\DeliveryController;
 use App\Http\Controllers\DriverLocationController;
 
@@ -34,8 +35,6 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('/deliveries', DeliveryController::class);
 
-    Route::patch('/deliveries/{delivery}/accept', [DeliveryController::class, 'accept']);
-
     Route::get('/sender-deliveries', function () {
         return Inertia::render('Delivery/Sender/SenderDeliveries');
     });
@@ -44,17 +43,22 @@ Route::middleware('auth')->group(function () {
         return Inertia::render('Delivery/Driver/DeliveriesList');
     });
 
+    Route::patch('/deliveries/{delivery}/accept', [DeliveryController::class, 'accept']);
+
+    Route::patch('/deliveries/{delivery}/cancel', [DeliveryController::class, 'cancel']);
+
     Route::patch('/deliveries/{delivery}/location', [DriverLocationController::class, 'updateLocation']);
 
     Route::get('/sender-deliveries/{delivery}/track', function (Delivery $delivery) {
-        // Φορτώνουμε τις σχέσεις pickupLocation και dropoffLocation
+
         $delivery->load(['pickupLocation', 'dropoffLocation']);
 
-        // Επιστρέφουμε τη σελίδα LiveTracking μέσω Inertia
         return Inertia::render('Delivery/Sender/LiveTrackingMap', [
             'delivery' => $delivery,
         ]);
     });
 
-    Route::patch('/deliveries/{delivery}/cancel', [DeliveryController::class, 'cancel']);
+    Route::get('/messages', [MessageController::class, 'index']);
+    Route::get('/messages/{user}', [MessageController::class, 'chatWith']);
+    Route::post('/messages', [MessageController::class, 'store']);
 });

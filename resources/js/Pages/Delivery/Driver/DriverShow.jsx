@@ -11,33 +11,33 @@ export default function DriverShow() {
             `/deliveries/${id}/accept`,
             {},
             {
-                onSuccess: (page) => {
-                    const updatedDelivery = page.props.delivery;
+                onSuccess: (response) => {
+                    const acceptedDelivery = response.props.delivery;
 
-                    if (!updatedDelivery.estimated_time) {
+                    if (!acceptedDelivery.estimated_time) {
                         console.error(
                             "No estimated_time available for simulation"
                         );
                         return;
                     }
-                    // Redirect back to the deliveries list page with sorting and pagination params if needed
+                    
                     LiveSimulation(
-                        updatedDelivery.id,
+                        acceptedDelivery.id,
                         {
                             latitude: auth.driver_location.latitude,
                             longitude: auth.driver_location.longitude,
                         },
                         {
-                            latitude: updatedDelivery.pickup_location.latitude,
+                            latitude: acceptedDelivery.pickup_location.latitude,
                             longitude:
-                                updatedDelivery.pickup_location.longitude,
+                                acceptedDelivery.pickup_location.longitude,
                         },
                         {
-                            latitude: updatedDelivery.dropoff_location.latitude,
+                            latitude: acceptedDelivery.dropoff_location.latitude,
                             longitude:
-                                updatedDelivery.dropoff_location.longitude,
+                                acceptedDelivery.dropoff_location.longitude,
                         },
-                        updatedDelivery.estimated_time
+                        acceptedDelivery.estimated_time
                     );
 
                     // Προαιρετικά επιστροφή στη λίστα
