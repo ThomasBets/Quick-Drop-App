@@ -32,7 +32,6 @@ class DeliveryController extends Controller
         }
     }
 
-
     /**
      * Show the form for creating a new resource.
      */
@@ -143,5 +142,30 @@ class DeliveryController extends Controller
         $syncService->syncDelivery($delivery);
 
         return Inertia::render('Delivery/Driver/DeliveriesList', ['delivery' => $delivery]);
+    }
+
+    public function cancel(Delivery $delivery, FirestoreSyncService $syncService)
+    {
+        $user = Auth::user();
+
+        if ($delivery->driver_id !== $user->id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        // Αν η παράδοση είναι ήδη delivered, δεν μπορεί να ακυρωθεί
+        if ($delivery->status === 'delivered') {
+            return response()->json(['error' => 'Delivery already completed'], 400);
+        }
+
+        // Επαναφορά σε pending
+        $delivery->driver_id = null;
+        $delivery->status = 'pending';
+        $delivery->estimated_time = null;
+        $delivery->save();
+
+        // Κάνουμε sync στο Firestore
+        $syncService->syncDelivery($delivery);
+
+        return Inertia::render('Delivery/Driver/DeliveriesList');
     }
 }

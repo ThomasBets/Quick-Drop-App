@@ -1,27 +1,25 @@
 import MainLayout from "../../../Layouts/MainLayout";
 import { Link, router, usePage } from "@inertiajs/react";
 import LiveSimulation from "../../../Pages/Delivery/Driver/LiveSimulation";
+import { cancelLiveSimulation } from "../../../Pages/Delivery/Driver/LiveSimulation";
 
 export default function DriverShow() {
     const { delivery, auth } = usePage().props;
 
     function acceptDelivery(id) {
-
         router.patch(
             `/deliveries/${id}/accept`,
             {},
             {
                 onSuccess: (page) => {
-
                     const updatedDelivery = page.props.delivery;
 
-                    console.log(updatedDelivery.estimated_time);
-
-
                     if (!updatedDelivery.estimated_time) {
-                    console.error("No estimated_time available for simulation");
-                    return;
-                }
+                        console.error(
+                            "No estimated_time available for simulation"
+                        );
+                        return;
+                    }
                     // Redirect back to the deliveries list page with sorting and pagination params if needed
                     LiveSimulation(
                         updatedDelivery.id,
@@ -31,17 +29,15 @@ export default function DriverShow() {
                         },
                         {
                             latitude: updatedDelivery.pickup_location.latitude,
-                            longitude: updatedDelivery.pickup_location.longitude,
+                            longitude:
+                                updatedDelivery.pickup_location.longitude,
                         },
                         {
                             latitude: updatedDelivery.dropoff_location.latitude,
-                            longitude: updatedDelivery.dropoff_location.longitude,
+                            longitude:
+                                updatedDelivery.dropoff_location.longitude,
                         },
-                        updatedDelivery.estimated_time,
-
-
-
-
+                        updatedDelivery.estimated_time
                     );
 
                     // Προαιρετικά επιστροφή στη λίστα
@@ -52,6 +48,13 @@ export default function DriverShow() {
             }
         );
     }
+
+    function cancelDelivery(id) {
+        cancelLiveSimulation(id);
+
+        router.patch(`/deliveries/${id}/cancel`, {});
+    }
+
     return (
         <MainLayout
             header={
@@ -125,6 +128,15 @@ export default function DriverShow() {
                                 Accept
                             </button>
                         </div>
+                    )}
+                    {delivery.status !== "pending" && (
+                        <button
+                            type="button"
+                            onClick={() => cancelDelivery(delivery.id)}
+                            className="button"
+                        >
+                            Cancel
+                        </button>
                     )}
                 </div>
             }

@@ -55,4 +55,6 @@ Route::middleware('auth')->group(function () {
             'delivery' => $delivery,
         ]);
     });
+
+    Route::patch('/deliveries/{delivery}/cancel', [DeliveryController::class, 'cancel']);
 });

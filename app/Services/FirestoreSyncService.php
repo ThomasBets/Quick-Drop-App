@@ -4,27 +4,38 @@ namespace App\Services;
 
 use App\Models\Delivery;
 use Illuminate\Support\Facades\Http;
+use Google\Auth\Credentials\ServiceAccountCredentials;
 
 class FirestoreSyncService
 {
     protected $projectId;
-    protected $token;
+    protected $creds;
 
     public function __construct()
     {
         $this->projectId = env('FIREBASE_PROJECT_ID');
-        $this->token = env('FIREBASE_ACCESS_TOKEN');
-    }
 
-    /**
-     * Sync a single delivery to Firestore
-     */
-    public function syncDelivery(Delivery $delivery): bool
-    {
-        if (!$this->projectId || !$this->token) {
-            throw new \Exception('FIREBASE_PROJECT_ID and FIREBASE_ACCESS_TOKEN must be set.');
+        $serviceAccountPath = env('FIREBASE_SERVICE_ACCOUNT');
+
+        // DEBUG: βεβαιώσου ότι η PHP βλέπει το αρχείο
+        if (!file_exists($serviceAccountPath)) {
+            throw new \Exception("Service account JSON file not found at path: {$serviceAccountPath}");
         }
 
+        $scopes = ['https://www.googleapis.com/auth/datastore'];
+
+        // Service account credentials για αυτόματο refresh του token
+        $this->creds = new ServiceAccountCredentials($scopes, $serviceAccountPath);
+    }
+
+    protected function getToken(): string
+    {
+        $tokenArray = $this->creds->fetchAuthToken();
+        return $tokenArray['access_token'];
+    }
+
+    public function syncDelivery(Delivery $delivery): bool
+    {
         $docId = $delivery->id;
         $url = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents/deliveries/{$docId}";
 
@@ -64,14 +75,11 @@ class FirestoreSyncService
             ],
         ];
 
-        $response = Http::withToken($this->token)->patch($url, $data);
+        $response = Http::withToken($this->getToken())->patch($url, $data);
 
         return $response->successful();
     }
 
-    /**
-     * Bulk sync all deliveries to Firestore
-     */
     public function syncAllDeliveries(): void
     {
         $deliveries = Delivery::with(['pickupLocation', 'dropoffLocation'])->get();
@@ -81,13 +89,8 @@ class FirestoreSyncService
         }
     }
 
-    // Sync driver's location to firebase
     public function syncDriverLocation($driverLocation): bool
     {
-        if (!$this->projectId || !$this->token) {
-            throw new \Exception('FIREBASE_PROJECT_ID and FIREBASE_ACCESS_TOKEN must be set.');
-        }
-
         $docId = "driver_{$driverLocation->driver_id}";
         $url = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents/driver_locations/{$docId}";
 
@@ -100,7 +103,7 @@ class FirestoreSyncService
             ],
         ];
 
-        $response = Http::withToken($this->token)->patch($url, $data);
+        $response = Http::withToken($this->getToken())->patch($url, $data);
 
         return $response->successful();
     }

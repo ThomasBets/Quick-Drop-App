@@ -1,6 +1,7 @@
 import axios from "axios";
 
-let liveSimIntervalId = null; // Παγκόσμιο ID interval
+let liveSimIntervalId = null; // κρατάει το global interval
+let currentDeliveryId = null; // κρατάει ποια παράδοση τρέχει
 
 export default async function LiveSimulation(
     deliveryId,
@@ -9,11 +10,14 @@ export default async function LiveSimulation(
     dropoffLocation,
     estimated_time
 ) {
-    // Σταματάμε προηγούμενη προσομοίωση αν υπάρχει
+    // Αν τρέχει ήδη παράδοση (ίδια ή άλλη) → σταματάμε
     if (liveSimIntervalId) {
         clearInterval(liveSimIntervalId);
         liveSimIntervalId = null;
+        currentDeliveryId = null;
     }
+
+    currentDeliveryId = deliveryId;
 
     // Μετατροπή σε αριθμούς
     let driverLatitude = parseFloat(driverLocation.latitude);
@@ -37,34 +41,32 @@ export default async function LiveSimulation(
         dropoffLongitude
     );
 
-    const stepDistance = 0.1; // km ανά step
-    const stepsToPickup = Math.max(
-        1,
-        Math.round(distanceToPickup / stepDistance)
-    );
-    const stepsToDropoff = Math.max(
-        1,
-        Math.round(distanceToDropoff / stepDistance)
-    );
+    // Συνολική διάρκεια μέχρι το estimated_time
+    const endTime = new Date(estimated_time);
+    const totalMs = endTime - Date.now();
+
+    // Βήματα = κάθε 5 sec
+    const intervalMs = 5000;
+    const totalSteps = Math.max(1, Math.floor(totalMs / intervalMs));
 
     const waypoints = [];
 
     // driver → pickup
-    for (let i = 0; i <= stepsToPickup; i++) {
-        const t = i / stepsToPickup;
+    for (let i = 0; i <= Math.floor(totalSteps / 2); i++) {
+        const t = i / Math.floor(totalSteps / 2);
         const latitude = driverLatitude + (pickupLatitude - driverLatitude) * t;
         const longitude =
             driverLongitude + (pickupLongitude - driverLongitude) * t;
         waypoints.push({
             latitude: parseFloat(latitude.toFixed(6)),
             longitude: parseFloat(longitude.toFixed(6)),
-            status: i < stepsToPickup ? "accepted" : "in_transit",
+            status: i < Math.floor(totalSteps / 2) ? "accepted" : "in_transit",
         });
     }
 
     // pickup → dropoff
-    for (let i = 1; i <= stepsToDropoff; i++) {
-        const t = i / stepsToDropoff;
+    for (let i = 1; i <= Math.ceil(totalSteps / 2); i++) {
+        const t = i / Math.ceil(totalSteps / 2);
         const latitude =
             pickupLatitude + (dropoffLatitude - pickupLatitude) * t;
         const longitude =
@@ -72,22 +74,19 @@ export default async function LiveSimulation(
         waypoints.push({
             latitude: parseFloat(latitude.toFixed(6)),
             longitude: parseFloat(longitude.toFixed(6)),
-            status: i < stepsToDropoff ? "in_transit" : "delivered",
+            status: i < Math.ceil(totalSteps / 2) ? "in_transit" : "delivered",
         });
     }
-
-    const totalSteps = waypoints.length;
-    const endTime = new Date(estimated_time);
-    const totalMs = endTime - Date.now();
-    const intervalMs = totalMs / totalSteps;
 
     let index = 0;
 
     // Ξεκινάμε νέο interval
     liveSimIntervalId = setInterval(async () => {
-        if (index >= waypoints.length) {
+        // αν φτάσαμε στο τέλος ή αν η παράδοση άλλαξε
+        if (index >= waypoints.length || deliveryId !== currentDeliveryId || !liveSimIntervalId) {
             clearInterval(liveSimIntervalId);
-            liveSimIntervalId = null; // Μηδενίζουμε το ID μόλις ολοκληρωθεί
+            liveSimIntervalId = null;
+            currentDeliveryId = null;
             return;
         }
 
@@ -97,13 +96,26 @@ export default async function LiveSimulation(
             await axios.patch(`/deliveries/${deliveryId}/location`, {
                 latitude: waypoint.latitude,
                 longitude: waypoint.longitude,
+                status: waypoint.status,
             });
         } catch (error) {
             console.error("Error updating driver location:", error);
+            if (error.response?.status === 403) {
+            cancelLiveSimulation(deliveryId);
+        }
         }
 
         index++;
     }, intervalMs);
+}
+
+// ➕ Cancel χειροκίνητα
+export function cancelLiveSimulation(deliveryId) {
+    if (liveSimIntervalId && deliveryId === currentDeliveryId) {
+        clearInterval(liveSimIntervalId);
+        liveSimIntervalId = null;
+        currentDeliveryId = null;
+    }
 }
 
 function distanceInKm(lat1, lon1, lat2, lon2) {
