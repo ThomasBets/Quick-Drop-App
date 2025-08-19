@@ -1,9 +1,10 @@
 import MainLayout from "../../../Layouts/MainLayout";
 import { Link, router, usePage } from "@inertiajs/react";
-
+import FloatingChat from "../Chat/FloatingChat";
 
 export default function SenderShow() {
     const { delivery } = usePage().props;
+
     return (
         <MainLayout
             header={
@@ -81,7 +82,11 @@ export default function SenderShow() {
                             delivery.status === "in_transit") && (
                             <div className="flex justify-center">
                                 <button
-                                    onClick={() => router.visit(`/sender-deliveries/${delivery.id}/track`)}
+                                    onClick={() =>
+                                        router.visit(
+                                            `/sender-deliveries/${delivery.id}/track`
+                                        )
+                                    }
                                     className="button"
                                 >
                                     Live Tracking
@@ -89,6 +94,12 @@ export default function SenderShow() {
                             </div>
                         )}
                     </div>
+                    {delivery.status !== "pending" && (
+                        <FloatingChat
+                            deliveryId={delivery.id}
+                            receiverId={delivery.driver_id}
+                        />
+                    )}
                 </div>
             }
         />

@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Services\FirestoreSyncService;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 class DeliveryController extends Controller
 {
@@ -87,30 +86,6 @@ class DeliveryController extends Controller
         }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Delivery $delivery)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Delivery $delivery)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Delivery $delivery)
-    {
-        //
-    }
-
     public function accept(Delivery $delivery, FirestoreSyncService $syncService)
     {
         $user = Auth::user();
@@ -165,7 +140,5 @@ class DeliveryController extends Controller
 
         // Κάνουμε sync στο Firestore
         $syncService->syncDelivery($delivery);
-
-        return Inertia::render('Delivery/Driver/DeliveriesList');
     }
 }

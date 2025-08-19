@@ -2,65 +2,67 @@
 
 namespace App\Http\Controllers;
 
+use Inertia\Inertia;
 use App\Models\Message;
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use App\Services\FirestoreSyncService;
 
 class MessageController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index($delivery, $user)
     {
-        //
-    }
+        $authUser = Auth::user();
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $messages = Message::where('delivery_id', $delivery)
+            ->whereIn('sender_id', [$authUser->id, $user])
+            ->whereIn('receiver_id', [$authUser->id, $user])
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        return Inertia::render('', ['messages' => $messages]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, FirestoreSyncService $syncService)
     {
-        //
+        $request->validate([
+            'delivery_id' => 'required|exists:deliveries,id',
+            'receiver_id' => 'required|exists:users,id',
+            'message' => 'required|string',
+        ]);
+
+        Log::info('MessageController@store called', $request->all());
+
+        $message = Message::create([
+            'delivery_id' => $request->delivery_id,
+            'sender_id'   => Auth::id(),
+            'receiver_id' => $request->receiver_id,
+            'message'     => $request->message,
+        ]);
+
+        $ok = $syncService->addMessage($message);
+
+        return response()->json([
+            'success' => $ok,
+            'message' => $message,
+        ]);
     }
 
     /**
-     * Display the specified resource.
+     * Μαρκάρισμα ως διαβασμένο
      */
-    public function show(Message $message)
+    public function markAsRead($messageId, FirestoreSyncService $syncService)
     {
-        //
-    }
+        $message = Message::findOrFail($messageId);
+        $message->update(['read_at' => now()]);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Message $message)
-    {
-        //
-    }
+        $syncService->addMessage($message); // update στο Firestore
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Message $message)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Message $message)
-    {
-        //
+        return response()->json(['message' => $message]);
     }
 }

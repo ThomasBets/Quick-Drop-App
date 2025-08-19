@@ -10,7 +10,7 @@ class Message extends Model
     /** @use HasFactory<\Database\Factories\MessageFactory> */
     use HasFactory;
     protected $fillable = [
-        'order_id',
+        'delivery_id',
         'sender_id',
         'receiver_id',
         'message',

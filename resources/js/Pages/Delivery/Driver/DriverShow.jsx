@@ -2,6 +2,7 @@ import MainLayout from "../../../Layouts/MainLayout";
 import { Link, router, usePage } from "@inertiajs/react";
 import LiveSimulation from "../../../Pages/Delivery/Driver/LiveSimulation";
 import { cancelLiveSimulation } from "../../../Pages/Delivery/Driver/LiveSimulation";
+import FloatingChat from "../Chat/FloatingChat";
 
 export default function DriverShow() {
     const { delivery, auth } = usePage().props;
@@ -20,7 +21,7 @@ export default function DriverShow() {
                         );
                         return;
                     }
-                    
+
                     LiveSimulation(
                         acceptedDelivery.id,
                         {
@@ -33,7 +34,8 @@ export default function DriverShow() {
                                 acceptedDelivery.pickup_location.longitude,
                         },
                         {
-                            latitude: acceptedDelivery.dropoff_location.latitude,
+                            latitude:
+                                acceptedDelivery.dropoff_location.latitude,
                             longitude:
                                 acceptedDelivery.dropoff_location.longitude,
                         },
@@ -53,6 +55,8 @@ export default function DriverShow() {
         cancelLiveSimulation(id);
 
         router.patch(`/deliveries/${id}/cancel`, {});
+
+        router.visit("/driver-deliveries");
     }
 
     return (
@@ -129,14 +133,21 @@ export default function DriverShow() {
                             </button>
                         </div>
                     )}
-                     {delivery.status !== "pending" && delivery.status !== "delivered" && (
-                        <button
-                            type="button"
-                            onClick={() => cancelDelivery(delivery.id)}
-                            className="button"
-                        >
-                            Cancel
-                        </button>
+                    {delivery.status !== "pending" &&
+                        delivery.status !== "delivered" && (
+                            <button
+                                type="button"
+                                onClick={() => cancelDelivery(delivery.id)}
+                                className="button"
+                            >
+                                Cancel
+                            </button>
+                        )}
+                    {delivery.status !== "pending" && (
+                        <FloatingChat
+                            deliveryId={delivery.id}
+                            receiverId={delivery.driver_id}
+                        />
                     )}
                 </div>
             }

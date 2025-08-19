@@ -58,7 +58,11 @@ Route::middleware('auth')->group(function () {
         ]);
     });
 
-    Route::get('/messages', [MessageController::class, 'index']);
-    Route::get('/messages/{user}', [MessageController::class, 'chatWith']);
+    Route::get('/messages/conversations/{delivery}', [MessageController::class, 'conversations']);
+
+    Route::get('/messages/{delivery}/{user}', [MessageController::class, 'index']);
+
     Route::post('/messages', [MessageController::class, 'store']);
+    
+    Route::patch('/messages/{id}/read', [MessageController::class, 'markAsRead']);
 });

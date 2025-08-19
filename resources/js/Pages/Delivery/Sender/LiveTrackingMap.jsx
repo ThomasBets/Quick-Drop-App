@@ -15,6 +15,7 @@ import { Link } from "@inertiajs/react";
 
 export default function LiveTrackingMap({ delivery }) {
     const [driverLocation, setDriverLocation] = useState(null);
+    const [deliveryStatus, setDeliveryStatus] = useState(delivery.status);
 
     const pickupLocation = {
         latitude: delivery.pickup_location.latitude,
@@ -34,7 +35,7 @@ export default function LiveTrackingMap({ delivery }) {
             "driver_locations",
             `driver_${delivery.driver_id}`
         );
-        const unsubscribe = onSnapshot(driverDocRef, (docSnap) => {
+        const unsubscribeDriver = onSnapshot(driverDocRef, (docSnap) => {
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 setDriverLocation({
@@ -44,14 +45,41 @@ export default function LiveTrackingMap({ delivery }) {
             }
         });
 
-        return () => unsubscribe();
-    }, [delivery.driver_id]);
+        const deliveryDocRef = doc(db, "deliveries", String(delivery.id));
+        const unsubscribeDelivery = onSnapshot(deliveryDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                setDeliveryStatus(data.status);
+            }
+        });
+
+        return () => {
+            unsubscribeDriver();
+            unsubscribeDelivery();
+        };
+    }, [delivery.driver_id, delivery.id]);
 
     if (!driverLocation) return <p>Loading driver location...</p>;
 
-    const driverCoordinates = [driverLocation.latitude, driverLocation.longitude];
-    const pickupCoordinates = [pickupLocation.latitude, pickupLocation.longitude];
-    const dropoffCoordinates = [dropoffLocation.latitude, dropoffLocation.longitude];
+    const driverCoordinates = [
+        driverLocation.latitude,
+        driverLocation.longitude,
+    ];
+    const pickupCoordinates = [
+        pickupLocation.latitude,
+        pickupLocation.longitude,
+    ];
+    const dropoffCoordinates = [
+        dropoffLocation.latitude,
+        dropoffLocation.longitude,
+    ];
+
+    const blueLineStart =
+        deliveryStatus === "accepted"
+            ? pickupCoordinates
+            : driverCoordinates || pickupCoordinates;
+
+    console.log(driverCoordinates);
 
     return (
         <MainLayout
@@ -100,13 +128,15 @@ export default function LiveTrackingMap({ delivery }) {
                         </Tooltip>
                     </Marker>
                     <Polyline
-                        positions={[driverCoordinates, pickupCoordinates]}
-                        color="red"
-                    />
-                    <Polyline
-                        positions={[pickupCoordinates, dropoffCoordinates]}
+                        positions={[blueLineStart, dropoffCoordinates]}
                         color="blue"
                     />
+                    {deliveryStatus === "accepted" && (
+                        <Polyline
+                            positions={[driverCoordinates, pickupCoordinates]}
+                            color="red"
+                        />
+                    )}
                 </MapContainer>
             }
         />

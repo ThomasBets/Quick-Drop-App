@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Delivery;
+use App\Models\Message;
 use Illuminate\Support\Facades\Http;
 use Google\Auth\Credentials\ServiceAccountCredentials;
 
@@ -17,14 +18,12 @@ class FirestoreSyncService
 
         $serviceAccountPath = env('FIREBASE_SERVICE_ACCOUNT');
 
-        // DEBUG: βεβαιώσου ότι η PHP βλέπει το αρχείο
         if (!file_exists($serviceAccountPath)) {
             throw new \Exception("Service account JSON file not found at path: {$serviceAccountPath}");
         }
 
         $scopes = ['https://www.googleapis.com/auth/datastore'];
 
-        // Service account credentials για αυτόματο refresh του token
         $this->creds = new ServiceAccountCredentials($scopes, $serviceAccountPath);
     }
 
@@ -34,6 +33,9 @@ class FirestoreSyncService
         return $tokenArray['access_token'];
     }
 
+    // ===========================
+    // Deliveries
+    // ===========================
     public function syncDelivery(Delivery $delivery): bool
     {
         $docId = $delivery->id;
@@ -57,21 +59,21 @@ class FirestoreSyncService
             'fields' => [
                 'sender_id' => ['integerValue' => $delivery->sender_id],
                 'pickup_location' => ['mapValue' => ['fields' => [
-                    'id' => ['integerValue' => $pickupLocation['id']],
-                    'address' => ['stringValue' => $pickupLocation['address']],
-                    'latitude' => ['doubleValue' => $pickupLocation['latitude']],
-                    'longitude' => ['doubleValue' => $pickupLocation['longitude']],
+                    'id' => ['integerValue' => $pickupLocation['id'] ?? 0],
+                    'address' => ['stringValue' => $pickupLocation['address'] ?? ''],
+                    'latitude' => ['doubleValue' => $pickupLocation['latitude'] ?? 0],
+                    'longitude' => ['doubleValue' => $pickupLocation['longitude'] ?? 0],
                 ]]],
                 'dropoff_location' => ['mapValue' => ['fields' => [
-                    'id' => ['integerValue' => $dropoffLocation['id']],
-                    'address' => ['stringValue' => $dropoffLocation['address']],
-                    'latitude' => ['doubleValue' => $dropoffLocation['latitude']],
-                    'longitude' => ['doubleValue' => $dropoffLocation['longitude']],
+                    'id' => ['integerValue' => $dropoffLocation['id'] ?? 0],
+                    'address' => ['stringValue' => $dropoffLocation['address'] ?? ''],
+                    'latitude' => ['doubleValue' => $dropoffLocation['latitude'] ?? 0],
+                    'longitude' => ['doubleValue' => $dropoffLocation['longitude'] ?? 0],
                 ]]],
                 'package_description' => ['stringValue' => $delivery->package_description],
                 'distance' => ['doubleValue' => $delivery->distance ?? 0],
                 'status' => ['stringValue' => $delivery->status],
-                'createdAt' => ['timestampValue' => $delivery->created_at->toIso8601String()],
+                'created_at' => ['timestampValue' => $delivery->created_at->toIso8601String()],
             ],
         ];
 
@@ -89,6 +91,9 @@ class FirestoreSyncService
         }
     }
 
+    // ===========================
+    // Driver Locations
+    // ===========================
     public function syncDriverLocation($driverLocation): bool
     {
         $docId = "driver_{$driverLocation->driver_id}";
@@ -99,11 +104,44 @@ class FirestoreSyncService
                 'driver_id' => ['integerValue' => $driverLocation->driver_id],
                 'latitude' => ['doubleValue' => $driverLocation->latitude],
                 'longitude' => ['doubleValue' => $driverLocation->longitude],
-                'updatedAt' => ['timestampValue' => now()->toIso8601String()],
+                'updated_at' => ['timestampValue' => now()->toIso8601String()],
             ],
         ];
 
         $response = Http::withToken($this->getToken())->patch($url, $data);
+
+        return $response->successful();
+    }
+
+    // ===========================
+    // Chat Messages
+    // ===========================
+    public function addMessage(Message $message): bool
+    {
+        $docId = $message->id; // Χρησιμοποιούμε το δικό σου id
+        $url = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents/deliveries/{$message->delivery_id}/messages/{$docId}";
+
+        $data = [
+            'fields' => [
+                'id' => ['integerValue' => $message->id],
+                'sender_id' => ['integerValue' => $message->sender_id],
+                'receiver_id' => ['integerValue' => $message->receiver_id],
+                'message' => ['stringValue' => $message->message],
+                'read_at' => $message->read_at
+                    ? ['timestampValue' => $message->read_at->toIso8601String()]
+                    : ['nullValue' => null],
+                'created_at' => ['timestampValue' => $message->created_at->toIso8601String()],
+            ],
+        ];
+
+        $response = Http::withToken($this->getToken())->patch($url, $data);
+
+        if (!$response->successful()) {
+            logger()->error('Firestore addMessage failed', [
+                'status' => $response->status(),
+                'body' => $response->body()
+            ]);
+        }
 
         return $response->successful();
     }
