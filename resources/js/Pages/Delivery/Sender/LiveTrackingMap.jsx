@@ -92,7 +92,12 @@ export default function LiveTrackingMap({ delivery }) {
                 <MapContainer
                     center={driverCoordinates}
                     zoom={13}
-                    style={{ height: "100%", width: "100%" }}
+                    style={{
+                        height: "95%",
+                        width: "95%",
+                        border: "1px solid #008080",
+                        borderRadius: "4px",
+                    }}
                 >
                     <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

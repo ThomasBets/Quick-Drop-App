@@ -68,7 +68,7 @@ class DeliveryController extends Controller
      */
     public function show(Delivery $delivery)
     {
-        $delivery->load('pickupLocation', 'dropoffLocation');
+        $delivery->load('pickupLocation', 'dropoffLocation', 'sender', 'driver');
 
         $user = User::with('driverLocation')->find(Auth::id());
 
@@ -108,7 +108,7 @@ class DeliveryController extends Controller
         );
         $deliveryDistance = $distanceToPickup + $delivery->distance; // pickup->dropoff distance
 
-        $speed = 60; // km/h
+        $speed = 200; // km/h
         $totalTimeHours = $deliveryDistance / $speed;
         $delivery->estimated_time = now()->addSeconds($totalTimeHours * 3600);
 

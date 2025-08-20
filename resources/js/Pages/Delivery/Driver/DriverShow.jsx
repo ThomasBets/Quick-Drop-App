@@ -145,8 +145,9 @@ export default function DriverShow() {
                         )}
                     {delivery.status !== "pending" && (
                         <FloatingChat
-                            deliveryId={delivery.id}
-                            receiverId={delivery.driver_id}
+                            delivery={delivery.id}
+                            receiver={delivery.sender_id}
+                            receiverName={delivery.sender.name}
                         />
                     )}
                 </div>

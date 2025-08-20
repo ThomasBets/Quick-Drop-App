@@ -14,15 +14,7 @@ class MessageController extends Controller
 {
     public function index($delivery, $user)
     {
-        $authUser = Auth::user();
-
-        $messages = Message::where('delivery_id', $delivery)
-            ->whereIn('sender_id', [$authUser->id, $user])
-            ->whereIn('receiver_id', [$authUser->id, $user])
-            ->orderBy('created_at', 'asc')
-            ->get();
-
-        return Inertia::render('', ['messages' => $messages]);
+        //
     }
 
     /**
@@ -30,9 +22,11 @@ class MessageController extends Controller
      */
     public function store(Request $request, FirestoreSyncService $syncService)
     {
+        $authUser = Auth::user();
+
         $request->validate([
             'delivery_id' => 'required|exists:deliveries,id',
-            'receiver_id' => 'required|exists:users,id',
+            'receiver_id' => 'required|different:' . $authUser->id,
             'message' => 'required|string',
         ]);
 
@@ -40,15 +34,14 @@ class MessageController extends Controller
 
         $message = Message::create([
             'delivery_id' => $request->delivery_id,
-            'sender_id'   => Auth::id(),
+            'sender_id'   => $authUser->id,
             'receiver_id' => $request->receiver_id,
             'message'     => $request->message,
         ]);
 
-        $ok = $syncService->addMessage($message);
+        $syncService->addMessage($message);
 
         return response()->json([
-            'success' => $ok,
             'message' => $message,
         ]);
     }

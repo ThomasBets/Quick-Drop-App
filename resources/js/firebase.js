@@ -1,6 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore"; // για τη βάση δεδομένων
+import { getFirestore } from "firebase/firestore";
+
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -15,8 +16,6 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Δημιουργία instance της Firestore βάσης δεδομένων
 const db = getFirestore(app);
 
-// Εξαγωγή για να το χρησιμοποιήσεις σε άλλα αρχεία
 export { db };

@@ -14,9 +14,14 @@ export default function SenderShow() {
             }
             main={
                 <div>
-                    {delivery.status !== "accepted" && (
+                    {delivery.status === "pending" && (
                         <div className="flex justify-center text-3xl mb-10">
                             <p>Delivery request submitted successfully.</p>
+                        </div>
+                    )}
+                    {delivery.status === "delivered" && (
+                        <div className="flex justify-center text-3xl mb-10">
+                            <p>Your package was delivered successfully.</p>
                         </div>
                     )}
                     <div className="max-w-2xl mx-auto text-lg bg-gradient-to-b from-teal-100/60 to-teal-200/90 p-6 rounded-lg shadow-md">
@@ -96,8 +101,9 @@ export default function SenderShow() {
                     </div>
                     {delivery.status !== "pending" && (
                         <FloatingChat
-                            deliveryId={delivery.id}
-                            receiverId={delivery.driver_id}
+                            delivery={delivery.id}
+                            receiver={delivery.driver_id}
+                            receiverName={delivery.driver.name}
                         />
                     )}
                 </div>

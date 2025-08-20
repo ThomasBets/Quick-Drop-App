@@ -1,10 +1,15 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useLayoutEffect } from "react";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import axios from "axios";
 import { db } from "../../../firebase"; // firebase config
 import { usePage } from "@inertiajs/react";
 
-export default function ChatWindow({ deliveryId, receiverId, onClose }) {
+export default function ChatWindow({
+    delivery,
+    receiver,
+    receiverName,
+    onClose,
+}) {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
     const messagesEndRef = useRef(null);
@@ -13,32 +18,40 @@ export default function ChatWindow({ deliveryId, receiverId, onClose }) {
     const user = auth?.user ?? auth;
 
     // scroll to bottom
-    const scrollToBottom = () =>
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 
     useEffect(() => {
-        if (!receiverId) return;
+        if (!receiver || !receiver) return;
+
+        setMessages([]);
+
+        const chatId = [user.id, receiver].sort((a, b) => a - b).join("_");
 
         const q = query(
-            collection(db, "deliveries", String(deliveryId), "messages"),
+            collection(
+                db,
+                "deliveries",
+                String(delivery),
+                "chats",
+                chatId,
+                "messages"
+            ),
             orderBy("created_at", "asc")
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
             setMessages(snapshot.docs.map((doc) => doc.data()));
-            scrollToBottom();
         });
 
         return () => unsubscribe();
-    }, [deliveryId, receiverId]);
+    }, [delivery, receiver]);
 
     const sendMessage = async () => {
         if (!newMessage.trim()) return;
 
         try {
             const res = await axios.post("/messages", {
-                delivery_id: deliveryId,
-                receiver_id: receiverId,
+                delivery_id: delivery,
+                receiver_id: receiver,
                 message: newMessage,
             });
             console.log("Message sent:", res.data);
@@ -51,10 +64,24 @@ export default function ChatWindow({ deliveryId, receiverId, onClose }) {
         }
     };
 
+    useEffect(() => {
+        if (!messages.length) return;
+
+        messages.forEach((msg) => {
+            if (!msg.read_at && msg.receiver_id === user.id) {
+                axios.patch(`/messages/${msg.id}/read`).catch(console.error);
+            }
+        });
+        scrollToBottom();
+    }, [messages]);
+
+    const scrollToBottom = () =>
+        messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+
     return (
         <div className="flex flex-col w-86 h-104 bg-white border rounded shadow-lg">
             <div className="flex justify-between items-center bg-teal-600 text-teal-50 px-3 py-2 rounded-t">
-                <span>Chat</span>
+                <span>{receiverName}</span>
                 <button onClick={onClose} className="font-bold">
                     ✕
                 </button>
@@ -70,7 +97,7 @@ export default function ChatWindow({ deliveryId, receiverId, onClose }) {
                         }
                     >
                         <div
-                            className={`inline-block px-3 py-1 rounded ${
+                            className={`inline-block px-3 py-1 rounded break-words max-w-3xs ${
                                 msg.sender_id === user?.id
                                     ? "bg-teal-600 text-teal-50"
                                     : "bg-gray-200 text-black"
@@ -83,13 +110,18 @@ export default function ChatWindow({ deliveryId, receiverId, onClose }) {
                 <div ref={messagesEndRef} />
             </div>
             <div className="flex p-2 border-t">
-                <input
-                    type="text"
+                <textarea
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    className="flex-1 border rounded px-2 py-1"
+                    className="flex-1 border rounded px-2 py-1 resize-none overflow-auto max-h-[4.5rem]"
                     placeholder="Send a message..."
-                    onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault(); // prevent new line
+                            sendMessage();
+                        }
+                    }}
+                    rows={1}
                 />
                 <button
                     onClick={sendMessage}

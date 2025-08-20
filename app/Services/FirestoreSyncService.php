@@ -118,8 +118,14 @@ class FirestoreSyncService
     // ===========================
     public function addMessage(Message $message): bool
     {
-        $docId = $message->id; // Χρησιμοποιούμε το δικό σου id
-        $url = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents/deliveries/{$message->delivery_id}/messages/{$docId}";
+
+        $chatId = $message->sender_id < $message->receiver_id
+            ? "{$message->sender_id}_{$message->receiver_id}"
+            : "{$message->receiver_id}_{$message->sender_id}";
+
+        $docId = $message->id;
+
+        $url = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents/deliveries/{$message->delivery_id}/chats/{$chatId}/messages/{$docId}";
 
         $data = [
             'fields' => [

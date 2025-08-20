@@ -4,16 +4,27 @@ import { collection, query, onSnapshot } from "firebase/firestore";
 import { db } from "../../../firebase";
 import { usePage } from "@inertiajs/react";
 
-export default function FloatingChat({ deliveryId, receiverId }) {
+export default function FloatingChat({ delivery, receiver, receiverName }) {
     const [open, setOpen] = useState(false);
     const [unread, setUnread] = useState(0);
     const { auth } = usePage().props;
 
+    const user = auth?.user ?? auth;
+
     useEffect(() => {
-        if (!deliveryId) return;
+        if (!delivery || !receiver) return;
+
+        const chatId = [user?.id, receiver].sort((a, b) => a - b).join("_");
 
         const q = query(
-            collection(db, "deliveries", String(deliveryId), "messages")
+            collection(
+                db,
+                "deliveries",
+                String(delivery),
+                "chats",
+                chatId,
+                "messages"
+            )
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -21,20 +32,21 @@ export default function FloatingChat({ deliveryId, receiverId }) {
             snapshot.docs.forEach((doc) => {
                 const msg = doc.data();
 
-                if (!msg.read_at && msg.sender_id !== auth?.user?.id) count++;
+                if (!msg.read_at && msg.receiver_id === user?.id) count++;
             });
             setUnread(count);
         });
 
         return () => unsubscribe();
-    }, [deliveryId]);
+    }, [delivery, receiver]);
 
     return (
         <div className="fixed bottom-20 right-10">
             {open && (
                 <ChatWindow
-                    deliveryId={deliveryId}
-                    receiverId={receiverId}
+                    delivery={delivery}
+                    receiver={receiver}
+                    receiverName={receiverName}
                     onClose={() => setOpen(false)}
                 />
             )}
