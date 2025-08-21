@@ -2,6 +2,8 @@
 
 use Inertia\Inertia;
 use App\Models\Delivery;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MessageController;
@@ -63,6 +65,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/messages/{delivery}/{user}', [MessageController::class, 'index']);
 
     Route::post('/messages', [MessageController::class, 'store']);
-    
+
     Route::patch('/messages/{id}/read', [MessageController::class, 'markAsRead']);
 });

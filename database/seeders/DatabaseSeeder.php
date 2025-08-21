@@ -17,9 +17,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             LocationSeeder::class,
             DeliverySeeder::class,
-            MessageSeeder::class,
             DriverLocationSeeder::class,
-            NotificationSeeder::class,
         ]);
     }
 }

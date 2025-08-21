@@ -116,7 +116,7 @@ class DeliveryController extends Controller
 
         $syncService->syncDelivery($delivery);
 
-        return Inertia::render('Delivery/Driver/DeliveriesList', ['delivery' => $delivery]);
+        return response()->json(['delivery' => $delivery]);
     }
 
     public function cancel(Delivery $delivery, FirestoreSyncService $syncService)

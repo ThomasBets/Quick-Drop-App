@@ -3,52 +3,48 @@ import { Link, router, usePage } from "@inertiajs/react";
 import LiveSimulation from "../../../Pages/Delivery/Driver/LiveSimulation";
 import { cancelLiveSimulation } from "../../../Pages/Delivery/Driver/LiveSimulation";
 import FloatingChat from "../Chat/FloatingChat";
+import axios from "axios";
 
 export default function DriverShow() {
     const { delivery, auth } = usePage().props;
 
     function acceptDelivery(id) {
-        router.patch(
-            `/deliveries/${id}/accept`,
-            {},
-            {
-                onSuccess: (response) => {
-                    const acceptedDelivery = response.props.delivery;
+        axios
+            .patch(`/deliveries/${id}/accept`, {})
+            .then((response) => {
+                // Access the returned JSON
+                const acceptedDelivery = response.data.delivery;
 
-                    if (!acceptedDelivery.estimated_time) {
-                        console.error(
-                            "No estimated_time available for simulation"
-                        );
-                        return;
-                    }
+                if (!acceptedDelivery.estimated_time) {
+                    console.error("No estimated_time available for simulation");
+                    return;
+                }
 
-                    LiveSimulation(
-                        acceptedDelivery.id,
-                        {
-                            latitude: auth.driver_location.latitude,
-                            longitude: auth.driver_location.longitude,
-                        },
-                        {
-                            latitude: acceptedDelivery.pickup_location.latitude,
-                            longitude:
-                                acceptedDelivery.pickup_location.longitude,
-                        },
-                        {
-                            latitude:
-                                acceptedDelivery.dropoff_location.latitude,
-                            longitude:
-                                acceptedDelivery.dropoff_location.longitude,
-                        },
-                        acceptedDelivery.estimated_time
-                    );
+                LiveSimulation(
+                    acceptedDelivery.id,
+                    {
+                        latitude: auth.driver_location.latitude,
+                        longitude: auth.driver_location.longitude,
+                    },
+                    {
+                        latitude: acceptedDelivery.pickup_location.latitude,
+                        longitude: acceptedDelivery.pickup_location.longitude,
+                    },
+                    {
+                        latitude: acceptedDelivery.dropoff_location.latitude,
+                        longitude: acceptedDelivery.dropoff_location.longitude,
+                    },
+                    acceptedDelivery.estimated_time
+                );
 
-                    // Προαιρετικά επιστροφή στη λίστα
-                    router.visit("/driver-deliveries", {
-                        preserveState: false,
-                    });
-                },
-            }
-        );
+                router.visit(`/deliveries/${id}`, { preserveState: false });
+            })
+            .catch((error) => {
+                console.error(
+                    "Error accepting delivery:",
+                    error.response?.data || error.message
+                );
+            });
     }
 
     function cancelDelivery(id) {
@@ -134,7 +130,8 @@ export default function DriverShow() {
                         </div>
                     )}
                     {delivery.status !== "pending" &&
-                        delivery.status !== "delivered" && (
+                        delivery.status !== "delivered" &&
+                        delivery.driver_id === auth?.id && (
                             <button
                                 type="button"
                                 onClick={() => cancelDelivery(delivery.id)}
@@ -143,13 +140,14 @@ export default function DriverShow() {
                                 Cancel
                             </button>
                         )}
-                    {delivery.status !== "pending" && (
-                        <FloatingChat
-                            delivery={delivery.id}
-                            receiver={delivery.sender_id}
-                            receiverName={delivery.sender.name}
-                        />
-                    )}
+                    {delivery.status !== "pending" &&
+                        delivery.driver_id === auth?.id && (
+                            <FloatingChat
+                                delivery={delivery.id}
+                                receiver={delivery.sender_id}
+                                receiverName={delivery.sender.name}
+                            />
+                        )}
                 </div>
             }
         />

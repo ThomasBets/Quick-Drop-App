@@ -12,12 +12,7 @@ use App\Services\FirestoreSyncService;
 
 class MessageController extends Controller
 {
-    public function index($delivery, $user)
-    {
-        //
-    }
-
-    /**
+      /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request, FirestoreSyncService $syncService)
@@ -46,15 +41,12 @@ class MessageController extends Controller
         ]);
     }
 
-    /**
-     * Μαρκάρισμα ως διαβασμένο
-     */
     public function markAsRead($messageId, FirestoreSyncService $syncService)
     {
         $message = Message::findOrFail($messageId);
         $message->update(['read_at' => now()]);
 
-        $syncService->addMessage($message); // update στο Firestore
+        $syncService->addMessage($message);
 
         return response()->json(['message' => $message]);
     }
