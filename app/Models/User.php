@@ -23,10 +23,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'phone',
-        'avatar_url',
-        'vehicle_type',
-        'license_number'
+        'fcm_token',
     ];
 
     /**

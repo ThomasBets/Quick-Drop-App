@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('title')->nullable();
             $table->text('body')->nullable();
 
-             $table->string('type')->nullable();
+            $table->string('type')->nullable();
             $table->json('data')->nullable();
 
             $table->timestamp('read_at')->nullable();

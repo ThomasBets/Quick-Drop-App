@@ -6,12 +6,13 @@ use App\Models\Delivery;
 use Illuminate\Http\Request;
 use App\Models\DriverLocation;
 use App\Http\Controllers\Controller;
+use App\Services\FcmTokenService;
 use Illuminate\Support\Facades\Auth;
 use App\Services\FirestoreSyncService;
 
 class DriverLocationController extends Controller
 {
-    public function updateLocation(Request $request, Delivery $delivery, FirestoreSyncService $syncService)
+    public function updateLocation(Request $request, Delivery $delivery, FirestoreSyncService $syncService, FcmTokenService $fcm)
     {
         $user = Auth::user();
 
@@ -48,10 +49,30 @@ class DriverLocationController extends Controller
         if ($delivery->status === 'accepted' && $distToPickup <= 0.01) {
             $delivery->status = 'in_transit';
             $delivery->save();
+
+            if ($delivery->sender && $delivery->sender->fcm_token) {
+
+                $fcm->sendNotification(
+                    [$delivery->sender->fcm_token],
+                    "Update of the delivery #{$delivery->id}",
+                    "Your delivery is on the way!",
+                    ["delivery_id" => (string)$delivery->id, "type" => "status_update"]
+                );
+            }
         } elseif ($delivery->status === 'in_transit' && $distToDropoff <= 0.01) {
             $delivery->status = 'delivered';
             $delivery->delivered_at = now();
             $delivery->save();
+
+            if ($delivery->sender && $delivery->sender->fcm_token) {
+
+                $fcm->sendNotification(
+                    [$delivery->sender->fcm_token],
+                    "Update of the delivery #{$delivery->id}",
+                    "Your delivery just delivered!",
+                    ["delivery_id" => (string)$delivery->id, "type" => "status_update"]
+                );
+            }
         }
         $syncService->syncDelivery($delivery);
         // Sync τοποθεσίας στο Firestore

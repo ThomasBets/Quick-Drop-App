@@ -1,20 +1,20 @@
 import "./bootstrap";
 import "../css/app.css";
-import '../css/style.css';
+import "../css/style.css";
 import { createInertiaApp } from "@inertiajs/react";
 import { createRoot } from "react-dom/client";
+import FcmProvider from "./Components/FcmProvider";
 
 createInertiaApp({
     resolve: (name) => {
         const pages = import.meta.glob("./Pages/**/*.jsx", { eager: true });
-        const page = pages[`./Pages/${name}.jsx`];
-        if (!page) {
-            throw new Error(`Page not found: ./Pages/${name}.jsx`);
-        }
-        // When using eager:true, the module's default export is directly accessible as page.default
-        return page.default;
+        return pages[`./Pages/${name}.jsx`].default;
     },
     setup({ el, App, props }) {
-        createRoot(el).render(<App {...props} />);
+        createRoot(el).render(
+            <FcmProvider>
+                <App {...props} />
+            </FcmProvider>
+        );
     },
 });

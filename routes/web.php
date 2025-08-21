@@ -67,4 +67,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/messages', [MessageController::class, 'store']);
 
     Route::patch('/messages/{id}/read', [MessageController::class, 'markAsRead']);
+
+    Route::post('/fcm-token', [AuthController::class, 'saveFcmToken']);
 });

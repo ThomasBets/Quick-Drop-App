@@ -9,6 +9,7 @@ use App\Models\Location;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use App\Services\FcmTokenService;
 use Illuminate\Support\Facades\Auth;
 use App\Services\FirestoreSyncService;
 
@@ -44,7 +45,7 @@ class DeliveryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, FcmTokenService $fcm)
     {
         $validated = $request->validate([
             'pickup_location_id' => 'required',
@@ -60,6 +61,19 @@ class DeliveryController extends Controller
             'status' => 'pending',
         ]);
 
+        $tokens = User::where('role', 'driver')
+            ->whereNotNull('fcm_token')
+            ->pluck('fcm_token')
+            ->toArray();
+
+        if ($tokens) {
+            $fcm->sendNotification(
+                $tokens,
+                "New delivery request",
+                "A new delivery request submitted",
+                ["delivery_id" => (string)$delivery->id, "type" => "new_delivery"]
+            );
+        }
         return redirect("/deliveries/{$delivery->id}");
     }
 
@@ -86,7 +100,7 @@ class DeliveryController extends Controller
         }
     }
 
-    public function accept(Delivery $delivery, FirestoreSyncService $syncService)
+    public function accept(Delivery $delivery, FirestoreSyncService $syncService, FcmTokenService $fcm)
     {
         $user = Auth::user();
 
@@ -108,7 +122,7 @@ class DeliveryController extends Controller
         );
         $deliveryDistance = $distanceToPickup + $delivery->distance; // pickup->dropoff distance
 
-        $speed = 200; // km/h
+        $speed = 500; // km/h
         $totalTimeHours = $deliveryDistance / $speed;
         $delivery->estimated_time = now()->addSeconds($totalTimeHours * 3600);
 
@@ -116,10 +130,19 @@ class DeliveryController extends Controller
 
         $syncService->syncDelivery($delivery);
 
+        if ($delivery->sender && $delivery->sender->fcm_token) {
+            $fcm->sendNotification(
+                [$delivery->sender->fcm_token],
+                "Your delivery request accepted",
+                "Driver {$delivery->driver->name} accepted your delivery request #{$delivery->id}",
+                ["delivery_id" => (string)$delivery->id, "type" => "accepted"]
+            );
+        }
+
         return response()->json(['delivery' => $delivery]);
     }
 
-    public function cancel(Delivery $delivery, FirestoreSyncService $syncService)
+    public function cancel(Delivery $delivery, FirestoreSyncService $syncService, FcmTokenService $fcm)
     {
         $user = Auth::user();
 
@@ -140,5 +163,15 @@ class DeliveryController extends Controller
 
         // Κάνουμε sync στο Firestore
         $syncService->syncDelivery($delivery);
+
+        if ($delivery->sender && $delivery->sender->fcm_token) {
+        $fcm->sendNotification(
+            [$delivery->sender->fcm_token],
+            "Your delivery cancelled",
+            "Your delivery with id #{$delivery->id} cancelled by the driver",
+            ["delivery_id" => (string)$delivery->id, "type" => "canceled"]
+        );
+    }
+
     }
 }

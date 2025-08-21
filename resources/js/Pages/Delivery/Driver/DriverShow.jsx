@@ -9,52 +9,48 @@ export default function DriverShow() {
     const { delivery, auth } = usePage().props;
 
     function acceptDelivery(id) {
-        axios
-            .patch(`/deliveries/${id}/accept`, {})
-            .then((response) => {
-                // Access the returned JSON
-                const acceptedDelivery = response.data.delivery;
+        axios.patch(`/deliveries/${id}/accept`, {}).then((response) => {
+            // Access the returned JSON
+            const acceptedDelivery = response.data.delivery;
 
-                if (!acceptedDelivery.estimated_time) {
-                    console.error("No estimated_time available for simulation");
-                    return;
-                }
+            if (!acceptedDelivery.estimated_time) {
+                console.error("No estimated_time available for simulation");
+                return;
+            }
 
-                LiveSimulation(
-                    acceptedDelivery.id,
-                    {
-                        latitude: auth.driver_location.latitude,
-                        longitude: auth.driver_location.longitude,
-                    },
-                    {
-                        latitude: acceptedDelivery.pickup_location.latitude,
-                        longitude: acceptedDelivery.pickup_location.longitude,
-                    },
-                    {
-                        latitude: acceptedDelivery.dropoff_location.latitude,
-                        longitude: acceptedDelivery.dropoff_location.longitude,
-                    },
-                    acceptedDelivery.estimated_time
-                );
+            LiveSimulation(
+                acceptedDelivery.id,
+                {
+                    latitude: auth.driver_location.latitude,
+                    longitude: auth.driver_location.longitude,
+                },
+                {
+                    latitude: acceptedDelivery.pickup_location.latitude,
+                    longitude: acceptedDelivery.pickup_location.longitude,
+                },
+                {
+                    latitude: acceptedDelivery.dropoff_location.latitude,
+                    longitude: acceptedDelivery.dropoff_location.longitude,
+                },
+                acceptedDelivery.estimated_time
+            );
 
-                router.visit(`/deliveries/${id}`, { preserveState: false });
-            })
-            .catch((error) => {
-                console.error(
-                    "Error accepting delivery:",
-                    error.response?.data || error.message
-                );
-            });
+            router.visit(`/deliveries/${id}`, { preserveState: false });
+        });
     }
 
     function cancelDelivery(id) {
         cancelLiveSimulation(id);
 
-        router.patch(`/deliveries/${id}/cancel`, {});
+        try {
+            router.patch(`/deliveries/${id}/cancel`, {});
 
-        router.visit("/driver-deliveries");
+            router.visit("/driver-deliveries");
+        } catch (error) {
+            console.error("Cancel failed:", error);
+            alert("Failed to cancel delivery. Please try again.");
+        }
     }
-
     return (
         <MainLayout
             header={

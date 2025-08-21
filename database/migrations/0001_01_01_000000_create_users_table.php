@@ -19,11 +19,8 @@ return new class extends Migration
             $table->string('password');
 
             $table->enum('role', ['sender', 'driver']);
-            $table->string('phone')->nullable();
-            $table->string('avatar_url')->nullable();
-            $table->string('vehicle_type')->nullable();
-            $table->string('license_number')->nullable();
 
+            $table->string('fcm_token')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

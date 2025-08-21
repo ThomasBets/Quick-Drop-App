@@ -39,5 +39,9 @@ return [
         'project_id' => env('FIRESTORE_PROJECT_ID', ''),
     ],
 
+    'fcm' => [
+        'project_id' => env('FIREBASE_PROJECT_ID'),
+    ],
+
 
 ];

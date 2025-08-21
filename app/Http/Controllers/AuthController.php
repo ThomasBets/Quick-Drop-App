@@ -74,6 +74,18 @@ class AuthController extends Controller
         return Inertia::location('/');
     }
 
+    public function saveFcmToken(Request $request)
+    {
+        $request->validate(['token' => 'required|string']);
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        $user->update(['fcm_token' => $request->token]);
+        
+        return response()->json(['success' => true]);
+    }
+
     // Api Token authentication (Mobile app)
 
     public function apiLogin(Request $request)

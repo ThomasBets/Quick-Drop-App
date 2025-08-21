@@ -9,9 +9,6 @@ export default function Register() {
         password: "",
         password_confirmation: "",
         role: "",
-        phone: "",
-        vehicle_type: "",
-        license_number: "",
     });
 
     const [errors, setErrors] = useState({});
@@ -163,63 +160,6 @@ export default function Register() {
                                     setFormData({
                                         ...formData,
                                         password_confirmation: e.target.value,
-                                    })
-                                }
-                            />
-                        </div>
-
-                        {/* Phone Field */}
-                        <div className="mb-6">
-                            <label className="block text mb-2">
-                                Phone Number
-                            </label>
-                            <input
-                                type="text"
-                                className="form_field"
-                                placeholder="(+30) 6978687868"
-                                value={formData.phone}
-                                onChange={(e) =>
-                                    setFormData({
-                                        ...formData,
-                                        phone: e.target.value,
-                                    })
-                                }
-                            />
-                        </div>
-
-                        {/* Vechicle Type Field */}
-                        <div className="mb-6">
-                            <label className="block text mb-2">
-                                Vechicle Type
-                            </label>
-                            <input
-                                type="text"
-                                className="form_field"
-                                placeholder="Van"
-                                value={formData.vehicle_type}
-                                onChange={(e) =>
-                                    setFormData({
-                                        ...formData,
-                                        vehicle_type: e.target.value,
-                                    })
-                                }
-                            />
-                        </div>
-
-                        {/* License Number Field */}
-                        <div className="mb-6">
-                            <label className="block text mb-2">
-                                License Number
-                            </label>
-                            <input
-                                type="text"
-                                className="form_field"
-                                placeholder="XNX 9999"
-                                value={formData.license_number}
-                                onChange={(e) =>
-                                    setFormData({
-                                        ...formData,
-                                        license_number: e.target.value,
                                     })
                                 }
                             />
