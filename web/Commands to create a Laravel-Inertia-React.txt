@@ -1,0 +1,80 @@
+Commands to create a Laravel-Inertia-React Project:
+
+composer create-project laravel/laravel nameOfTheProject
+
+cd to your project directory
+
+npm i react react-dom
+
+npm install --save-dev @vitejs/plugin-react
+
+Inertia Server-side: 
+
+composer require inertiajs/inertia-laravel
+
+change the name of the \resources\views\welcome.blade.php to \resources\views\app.blade.php
+and copy the code below:
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    @viteReactRefresh
+    @vite('resources/js/app.jsx')
+    @inertiaHead
+  </head>
+  <body>
+    @inertia
+  </body>
+</html>
+
+
+php artisan inertia:middleware
+
+copy the code below to bootstrap\app.php:
+
+$middleware->web(append: [
+        HandleInertiaRequests::class,
+    ]);
+
+
+Inertia Client-side:
+
+npm install @inertiajs/react
+
+copy the code below to resources\js\app.js and rename the app.js to app.jsx:
+
+import { createInertiaApp } from '@inertiajs/react'
+import { createRoot } from 'react-dom/client'
+
+createInertiaApp({
+  resolve: name => {
+    const pages = import.meta.glob('./Pages/**/*.jsx', { eager: true })
+    return pages[`./Pages/${name}.jsx`]
+  },
+  setup({ el, App, props }) {
+    createRoot(el).render(<App {...props} />)
+  },
+})
+
+
+To vite.config.js:
+
+import react from '@vitejs/plugin-react'
+
+Add the .jsx suffix to the app
+
+Add react() inside the plugins
+
+create the Pages folder to resources\js
+
+
+Add the below code to resources\css\app.css:
+
+@source '../../**/*.jsx';
+
+
+php get_access_token.php
+
+php artisan app:sync-deliveries-rest
