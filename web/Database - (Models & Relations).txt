@@ -1,7 +1,0 @@
-Model -- Relation
-
-User -- hasMany Orders, Messages, Locations
-Order -- belongsTo User (sender/driver), hasMany Messages
-Message -- belongsTo User, belongsTo Order
-Location --	belongsTo User
-Notification -- belongsTo User
