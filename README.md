@@ -30,6 +30,8 @@ composer install
 ### 3. Install Node Dependencies (if applicable)
 ```bash
 npm install
+```
+```bash
 npm install -g vite
 ```
 
