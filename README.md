@@ -79,7 +79,10 @@ php artisan key:generate
 ```
 
 ### 6. Set Up Database
-- Create a database in MySQL (use the name from `.env`).  
+- Create a database in MySQL (use the name from `.env`).
+  ```bash
+  docker compose up
+  ```
 - Run migrations:
   ```bash
   php artisan migrate
@@ -88,14 +91,18 @@ php artisan key:generate
   ```bash
   php artisan db:seed
   ```
+### 7. Syncing Database's data with the Firestore
+```bash
+php artisan app:sync-deliveries-rest
+```
 
-### 7. Build Frontend Assets (if applicable)
+### 8. Build Frontend Assets (if applicable)
 ```bash
 npm run dev
 ```
 (or `npm run build` for production)
 
-### 8. Run the Development Server
+### 9. Run the Development Server
 ```bash
 php artisan serve
 ```
